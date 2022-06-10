@@ -18,8 +18,7 @@ model_name = 'efficientnet-b0'  # b5
 
 image_size = EfficientNet.get_image_size(model_name)
 print(image_size)
-model = EfficientNet.from_pretrained(model_name, num_classes=7)
-## 데이타 로드!!
+model = EfficientNet.from_pretrained(model_name, num_classes=10)
 batch_size  = 128
 random_seed = 555
 random.seed(random_seed)

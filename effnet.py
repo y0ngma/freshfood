@@ -1,19 +1,12 @@
-import os, json, datetime, time, copy, random
-import numpy as np
+import os, json, datetime
 from PIL import Image
 import torch
-import torch.nn as nn
-import torch.optim as optim
-from torch.optim import lr_scheduler
-from torch.utils.data import Subset
-from torchvision import transforms, datasets
-import matplotlib.pyplot as plt
-from sklearn.model_selection import train_test_split
+from torchvision import transforms
 from efficientnet_pytorch import EfficientNet
 
 model_name = 'efficientnet-b0'  # b5
 image_size = EfficientNet.get_image_size(model_name)
-print(image_size)
+# print(image_size)
 model = EfficientNet.from_pretrained(model_name)
 
 PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -21,7 +14,7 @@ data_dir    = f"{PROJECT_DIR}\dataset"
 src_dir     = f"{data_dir}\img.jpg"
 label_dir   = f'{data_dir}\labels_map.txt'
 img         = Image.open(src_dir)
-img.show()
+# img.show()
 print('원본이미지크기', img.size)
 
 # Preprocess image
