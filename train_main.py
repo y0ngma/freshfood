@@ -1,4 +1,5 @@
 ## 학습 코드
+from cProfile import label
 import json, os, copy, random, time, datetime
 import numpy as np
 from PIL import Image
@@ -199,4 +200,31 @@ if __name__ == "__main__":
     exp_lr_scheduler = optim.lr_scheduler.MultiplicativeLR(optimizer_ft, lr_lambda=lmbda)
 
     model, best_idx, best_acc, train_loss, train_acc, valid_loss, valid_acc = train_model(
-        model, criterion, optimizer_ft, exp_lr_scheduler, num_epochs=3)
+        model, criterion, optimizer_ft, exp_lr_scheduler, num_epochs=2)
+    
+    ## 결과 그래프 그리기
+    print('best model : %d - %1.f / %.1f'%(best_idx, valid_acc[best_idx], valid_loss[best_idx]))
+    fig, ax1 = plt.subplots()
+
+    ax1.plot(train_acc, 'b-', label='train_acc')
+    ax1.plot(valid_acc, 'r-', label='valid_acc')
+    # ax1.plot(train_acc, 'b-')
+    # ax1.plot(valid_acc, 'r-')
+    plt.plot(best_idx, valid_acc[best_idx], 'ro')
+    ax1.set_xlabel('epoch')
+    # Make the y-axis label, ticks and tick labels match the line color.
+    ax1.set_ylabel('acc', color='k')
+    ax1.tick_params('y', colors='k')
+
+    ax2 = ax1.twinx()
+    ax2.plot(train_loss, 'g-', label='train_loss')
+    ax2.plot(valid_loss, 'k-', label='valid_loss')
+    # ax2.plot(train_loss, 'g-')
+    # ax2.plot(valid_loss, 'k-')
+    plt.plot(best_idx, valid_loss[best_idx], 'ro')
+    ax2.set_ylabel('loss', color='k')
+    ax2.tick_params('y', colors='k')
+
+    fig.tight_layout()
+    plt.legend()
+    plt.show()
