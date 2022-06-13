@@ -1,23 +1,20 @@
 ## 학습 코드
+import json, os, copy, random, time, datetime
 import numpy as np
-import json
 from PIL import Image
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from multiprocessing import freeze_support
+
 import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.optim import lr_scheduler
 from torchvision import transforms
-import matplotlib.pyplot as plt
-import time
-import os
-import copy
-import random
 from efficientnet_pytorch import EfficientNet
-from torchvision import transforms, datasets
-from sklearn.model_selection import train_test_split
-from torch.utils.data import Subset
 import torchvision
-from multiprocessing import freeze_support
+from torchvision import transforms, datasets
+from torch.utils.data import Subset
 
 
 def imshowt(inp, title=None):
@@ -31,6 +28,84 @@ def imshowt(inp, title=None):
     if title is not None:
         plt.title(title)
     plt.pause(0.001)  # pause a bit so that plots are updated
+
+
+def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
+    model_save_dir = f'{os.path.dirname(os.path.abspath(__file__))}'
+    since = time.time()
+    best_model_wts = copy.deepcopy(model.state_dict())
+    best_acc = 0.0
+    train_loss, train_acc, valid_loss, valid_acc = [], [], [], []
+    
+    for epoch in range(num_epochs):
+        print('Epoch {}/{}'.format(epoch, num_epochs - 1))
+        print('-' * 10)
+
+        # Each epoch has a training and validation phase
+        for phase in ['train', 'valid']:
+            if phase == 'train':
+                model.train()  # Set model to training mode
+            else:
+                model.eval()   # Set model to evaluate mode
+
+            running_loss, running_corrects, num_cnt = 0.0, 0, 0
+            
+            # Iterate over data.
+            for inputs, labels in dataloaders[phase]:
+                inputs = inputs.to(device)
+                labels = labels.to(device)
+
+                # zero the parameter gradients
+                optimizer.zero_grad()
+
+                # forward
+                # track history if only in train
+                with torch.set_grad_enabled(phase == 'train'):
+                    outputs = model(inputs)
+                    _, preds = torch.max(outputs, 1)
+                    loss = criterion(outputs, labels)
+
+                    # backward + optimize only if in training phase
+                    if phase == 'train':
+                        loss.backward()
+                        optimizer.step()
+
+                # statistics
+                running_loss += loss.item() * inputs.size(0)
+                running_corrects += torch.sum(preds == labels.data)
+                num_cnt += len(labels)
+            if phase == 'train':
+                scheduler.step()
+            
+            epoch_loss = float(running_loss / num_cnt)
+            epoch_acc  = float((running_corrects.double() / num_cnt).cpu()*100)
+            
+            if phase == 'train':
+                train_loss.append(epoch_loss)
+                train_acc.append(epoch_acc)
+            else:
+                valid_loss.append(epoch_loss)
+                valid_acc.append(epoch_acc)
+            print('{} Loss: {:.2f} Acc: {:.1f}'.format(phase, epoch_loss, epoch_acc))
+           
+            # deep copy the model
+            if phase == 'valid' and epoch_acc > best_acc:
+                best_idx = epoch
+                best_acc = epoch_acc
+                best_model_wts = copy.deepcopy(model.state_dict())
+#                 best_model_wts = copy.deepcopy(model.module.state_dict())
+                print('==> best model saved - %d / %.1f'%(best_idx, best_acc))
+
+    time_elapsed = time.time() - since
+    print('Training complete in {:.0f}m {:.0f}s'.format(time_elapsed // 60, time_elapsed % 60))
+    print('Best valid Acc: %d - %.1f' %(best_idx, best_acc))
+
+    # load best model weights
+    model.load_state_dict(best_model_wts)
+    model_save_name = f'{datetime.datetime.today().strftime("%Y%m%d")}_epoch@_{best_idx}.pt'
+    torch.save(model.state_dict(), f"{model_save_dir}/{model_save_name}")
+    print('model saved')
+    return model, best_idx, best_acc, train_loss, train_acc, valid_loss, valid_acc
 
 
 if __name__ == "__main__":
@@ -52,11 +127,6 @@ if __name__ == "__main__":
     model = EfficientNet.from_pretrained(model_name, num_classes=len(class_names))
     print(EfficientNet.get_image_size(model_name))
 
-    # print("fc 제외하고 freeze")
-    # for n, p in model.named_parameters():
-    #     if '_fc' not in n:
-    #         p.requires_grad = False
-    # model = torch.nn.parallel.DistributedDataParallel(model)
 
     batch_size  = 32
     random_seed = 555
@@ -64,7 +134,7 @@ if __name__ == "__main__":
     torch.manual_seed(random_seed)
 
     PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
-    data_path   = f"{os.path.dirname(PROJECT_DIR)}/dataset/{os.path.basename(PROJECT_DIR)}"
+    data_path   = f"{os.path.dirname(PROJECT_DIR)}/dataset/{os.path.basename(PROJECT_DIR)}/all"
 
     ## make dataset
     president_dataset = datasets.ImageFolder(
@@ -98,22 +168,35 @@ if __name__ == "__main__":
     batch_num['train'], batch_num['valid'], batch_num['test'] = len(dataloaders['train']), len(dataloaders['valid']), len(dataloaders['test'])
     print('batch_size : %d,  tvt : %d / %d / %d' % (batch_size, batch_num['train'], batch_num['valid'], batch_num['test']))
 
+    # ## 데이타 체크
+    # num_show_img = 5
+    # # train check
+    # inputs, classes = next(iter(dataloaders['train']))
+    # out = torchvision.utils.make_grid(inputs[:num_show_img])  # batch의 이미지를 오려부친다
+    # imshowt(out, title=[class_names[str(int(x))] for x in classes[:num_show_img]])
+    # # valid check
+    # inputs, classes = next(iter(dataloaders['valid']))
+    # out = torchvision.utils.make_grid(inputs[:num_show_img])
+    # imshowt(out, title=[class_names[str(int(x))] for x in classes[:num_show_img]])
+    # # test check
+    # inputs, classes = next(iter(dataloaders['test']))
+    # out = torchvision.utils.make_grid(inputs[:num_show_img])
+    # imshowt(out, title=[class_names[str(int(x))] for x in classes[:num_show_img]])
 
-    num_show_img = 5
-    class_names  = {"0": "apple","1": "banana","2": "carrot","3": "cauliflower","4": "garlic","5": "ginger","6": "grapes","7": "mango","8": "pineapple","9": "watermelon"}
+    # print("fc 제외하고 freeze")
+    # for n, p in model.named_parameters():
+    #     if '_fc' not in n:
+    #         p.requires_grad = False
+    # model = torch.nn.parallel.DistributedDataParallel(model)
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")  # set gpu
+    model = model.to(device)
+    criterion = nn.CrossEntropyLoss()
+    optimizer_ft = optim.SGD(model.parameters(), 
+                            lr = 0.05,
+                            momentum=0.9,
+                            weight_decay=1e-4)
+    lmbda = lambda epoch: 0.98739
+    exp_lr_scheduler = optim.lr_scheduler.MultiplicativeLR(optimizer_ft, lr_lambda=lmbda)
 
-    ## 데이타 체크
-    # train check
-    inputs, classes = next(iter(dataloaders['train']))
-    out = torchvision.utils.make_grid(inputs[:num_show_img])  # batch의 이미지를 오려부친다
-    imshowt(out, title=[class_names[str(int(x))] for x in classes[:num_show_img]])
-
-    # valid check
-    inputs, classes = next(iter(dataloaders['valid']))
-    out = torchvision.utils.make_grid(inputs[:num_show_img])  # batch의 이미지를 오려부친다
-    imshowt(out, title=[class_names[str(int(x))] for x in classes[:num_show_img]])
-
-    # test check
-    inputs, classes = next(iter(dataloaders['test']))
-    out = torchvision.utils.make_grid(inputs[:num_show_img])  # batch의 이미지를 오려부친다
-    imshowt(out, title=[class_names[str(int(x))] for x in classes[:num_show_img]])
+    model, best_idx, best_acc, train_loss, train_acc, valid_loss, valid_acc = train_model(
+        model, criterion, optimizer_ft, exp_lr_scheduler, num_epochs=3)
