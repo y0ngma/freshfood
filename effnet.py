@@ -4,15 +4,12 @@ import torch
 from torchvision import transforms
 from efficientnet_pytorch import EfficientNet
 
-model_name = 'efficientnet-b0'  # b5
-image_size = EfficientNet.get_image_size(model_name)
-# print(image_size)
-model = EfficientNet.from_pretrained(model_name)
 
 PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
-data_dir    = f"{PROJECT_DIR}\dataset"
-src_dir     = f"{data_dir}\img.jpg"
-label_dir   = f'{data_dir}\labels_map.txt'
+# C:/home/freshfood/img_cap
+data_dir    = f"{PROJECT_DIR}/img_cap"
+src_dir     = f"{data_dir}/img.jpg"
+label_dir   = f'{data_dir}/labels_map.txt'
 img         = Image.open(src_dir)
 # img.show()
 print('원본이미지크기', img.size)
@@ -26,6 +23,10 @@ tfms = transforms.Compose(
 img = tfms(img).unsqueeze(0)
 print(img.shape)
 
+model_name = 'efficientnet-b0'  # b5
+image_size = EfficientNet.get_image_size(model_name)
+# print(image_size)
+model = EfficientNet.from_pretrained(model_name)
 features = model.extract_features(img)
 print(features.shape)
 
