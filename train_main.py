@@ -109,6 +109,58 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
     return model, best_idx, best_acc, train_loss, train_acc, valid_loss, valid_acc
 
 
+def test_and_visualize_model(model, phase = 'test', num_images=4):
+    """phase = 'train', 'valid', 'test'"""
+    was_training = model.training
+    model.eval()
+    fig = plt.figure()
+
+    running_loss, running_corrects, num_cnt = 0.0, 0, 0
+
+    with torch.no_grad():
+        for i, (inputs, labels) in enumerate(dataloaders[phase]):
+            inputs = inputs.to(device)
+            labels = labels.to(device)
+
+            outputs = model(inputs)
+            _, preds = torch.max(outputs, 1)
+            loss = criterion(outputs, labels)  # batch의 평균 loss 출력
+
+            running_loss    += loss.item() * inputs.size(0)
+            running_corrects+= torch.sum(preds == labels.data)
+            num_cnt += inputs.size(0)  # batch size
+
+    #         if i == 2: break
+
+        test_loss = running_loss / num_cnt
+        test_acc  = running_corrects.double() / num_cnt       
+        print('test done : loss/acc : %.2f / %.1f' % (test_loss, test_acc*100))
+
+    # 예시 그림 plot
+    with torch.no_grad():
+        for i, (inputs, labels) in enumerate(dataloaders[phase]):
+            inputs = inputs.to(device)
+            labels = labels.to(device)
+
+            outputs = model(inputs)
+            _, preds = torch.max(outputs, 1)        
+
+            # 예시 그림 plot
+            for j in range(1, num_images+1):
+                ax = plt.subplot(num_images//2, 2, j)
+                ax.axis('off')
+                ax.set_title('%s : %s -> %s'%(
+                    'True' if class_names[str(labels[j].cpu().numpy())]==class_names[str(preds[j].cpu().numpy())] else 'False',
+                    class_names[str(labels[j].cpu().numpy())],
+                    class_names[str(preds[j].cpu().numpy())]
+                    ))
+                cv2.imshow(inputs.cpu().data[j])          
+            if i == 0 : break
+
+    model.train(mode=was_training);  # 다시 train모드로
+
+
+
 if __name__ == "__main__":
     freeze_support()
     
@@ -127,7 +179,6 @@ if __name__ == "__main__":
     model_name = 'efficientnet-b0'  # b5
     model = EfficientNet.from_pretrained(model_name, num_classes=len(class_names))
     print(EfficientNet.get_image_size(model_name))
-
 
     batch_size  = 32
     random_seed = 555
@@ -200,8 +251,8 @@ if __name__ == "__main__":
     exp_lr_scheduler = optim.lr_scheduler.MultiplicativeLR(optimizer_ft, lr_lambda=lmbda)
 
     model, best_idx, best_acc, train_loss, train_acc, valid_loss, valid_acc = train_model(
-        model, criterion, optimizer_ft, exp_lr_scheduler, num_epochs=2)
-    
+        model, criterion, optimizer_ft, exp_lr_scheduler, num_epochs=5)
+
     ## 결과 그래프 그리기
     print('best model : %d - %1.f / %.1f'%(best_idx, valid_acc[best_idx], valid_loss[best_idx]))
     fig, ax1 = plt.subplots()
@@ -226,5 +277,10 @@ if __name__ == "__main__":
     ax2.tick_params('y', colors='k')
 
     fig.tight_layout()
-    plt.legend()
+    # plt.legend()
+    ax1.legend()
+    ax2.legend()
     plt.show()
+
+    ## TEST!
+    test_and_visualize_model(model, phase = 'test')
