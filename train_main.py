@@ -31,8 +31,7 @@ def imshowt(inp, title=None):
     plt.pause(0.001)  # pause a bit so that plots are updated
 
 
-def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
-    model_save_dir = f'{os.path.dirname(os.path.abspath(__file__))}'
+def train_model(save_path, model, criterion, optimizer, scheduler, num_epochs=25):
     since = time.time()
     best_model_wts = copy.deepcopy(model.state_dict())
     best_acc = 0.0
@@ -104,7 +103,7 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
     # load best model weights
     model.load_state_dict(best_model_wts)
     model_save_name = f'{datetime.datetime.today().strftime("%Y%m%d")}_epoch@_{best_idx}.pt'
-    torch.save(model.state_dict(), f"{model_save_dir}/{model_save_name}")
+    torch.save(model.state_dict(), f"{save_path}/{model_save_name}")
     print('model saved')
     return model, best_idx, best_acc, train_loss, train_acc, valid_loss, valid_acc
 
@@ -163,7 +162,7 @@ def test_and_visualize_model(model, phase = 'test', num_images=4):
 
 if __name__ == "__main__":
     freeze_support()
-    
+
     class_names = {
         "0": "apple",
         "1": "banana",
@@ -186,7 +185,9 @@ if __name__ == "__main__":
     torch.manual_seed(random_seed)
 
     PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
-    data_path   = f"{os.path.dirname(PROJECT_DIR)}/dataset/{os.path.basename(PROJECT_DIR)}/all"
+    data_path   = f"{os.path.dirname(PROJECT_DIR)}/dataset/freshfood/all"
+    save_path   = f"{os.path.dirname(PROJECT_DIR)}/saved_models/freshfood"
+
 
     ## make dataset
     president_dataset = datasets.ImageFolder(
@@ -251,7 +252,7 @@ if __name__ == "__main__":
     exp_lr_scheduler = optim.lr_scheduler.MultiplicativeLR(optimizer_ft, lr_lambda=lmbda)
 
     model, best_idx, best_acc, train_loss, train_acc, valid_loss, valid_acc = train_model(
-        model, criterion, optimizer_ft, exp_lr_scheduler, num_epochs=5)
+        save_path, model, criterion, optimizer_ft, exp_lr_scheduler, num_epochs=5)
 
     ## 결과 그래프 그리기
     print('best model : %d - %1.f / %.1f'%(best_idx, valid_acc[best_idx], valid_loss[best_idx]))
@@ -259,8 +260,6 @@ if __name__ == "__main__":
 
     ax1.plot(train_acc, 'b-', label='train_acc')
     ax1.plot(valid_acc, 'r-', label='valid_acc')
-    # ax1.plot(train_acc, 'b-')
-    # ax1.plot(valid_acc, 'r-')
     plt.plot(best_idx, valid_acc[best_idx], 'ro')
     ax1.set_xlabel('epoch')
     # Make the y-axis label, ticks and tick labels match the line color.
@@ -270,17 +269,14 @@ if __name__ == "__main__":
     ax2 = ax1.twinx()
     ax2.plot(train_loss, 'g-', label='train_loss')
     ax2.plot(valid_loss, 'k-', label='valid_loss')
-    # ax2.plot(train_loss, 'g-')
-    # ax2.plot(valid_loss, 'k-')
     plt.plot(best_idx, valid_loss[best_idx], 'ro')
     ax2.set_ylabel('loss', color='k')
     ax2.tick_params('y', colors='k')
 
     fig.tight_layout()
-    # plt.legend()
     ax1.legend()
     ax2.legend()
     plt.show()
 
-    ## TEST!
-    test_and_visualize_model(model, phase = 'test')
+    # ## TEST!
+    # test_and_visualize_model(model, phase = 'test')
