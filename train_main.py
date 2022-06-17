@@ -102,7 +102,7 @@ def train_model(save_path, model, criterion, optimizer, scheduler, num_epochs=25
 
     # load best model weights
     model.load_state_dict(best_model_wts)
-    model_save_name = f'{datetime.datetime.today().strftime("%Y%m%d")}_epoch@_{best_idx}.pt'
+    model_save_name = f'{datetime.datetime.today().strftime("%Y%m%d")}_epoch@{best_idx}.pt'
     torch.save(model.state_dict(), f"{save_path}/{model_save_name}")
     print('model saved')
     return model, best_idx, best_acc, train_loss, train_acc, valid_loss, valid_acc

@@ -68,7 +68,8 @@ for epoch in range(1000):
 
 PATH = 'C:/home/freshfood/saved_models'
 dict_path = PATH + '/model_state_dict.pt'
-model_path = PATH + '/model.pt'
+save_path = PATH + '/model.pt'
+model_path = PATH + '/20220617_epoch@4.pt'
 all_path = PATH + '/all.tar'
 
 ## 저장하기(CPU, GPU 동일)
@@ -112,3 +113,5 @@ optimizer.load_state_dict(checkpoint['optimizer'])
 # model = DNN()
 # model.load_state_dict(torch.load(dict_path, map_location='cuda:0'))
 # model.to(device)
+
+model.eval()
