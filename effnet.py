@@ -30,14 +30,14 @@ print(img.shape)
 model_name = 'efficientnet-b0'  # b5
 image_size = EfficientNet.get_image_size(model_name)
 # print(image_size)
-model = EfficientNet.from_pretrained(model_name)
-model = torch.load(f"{model_path}/20220617_epoch@4.pt")
-features = model.extract_features(img)
-print(features.shape)
+model = EfficientNet.from_pretrained(model_name, num_classes=10)
+model.load_state_dict(torch.load(f"{model_path}/20220617_epoch@4.pt"))
+# features = model.extract_features(img)
+# print(features.shape)
 
 # Load ImageNet class names
 labels_map = json.load(open(label_dir))
-labels_map = [labels_map[str(i)] for i in range(1000)]
+labels_map = [labels_map[str(i)] for i in range(len(labels_map))]
 
 # 시간측정
 start_time = datetime.datetime.now()
