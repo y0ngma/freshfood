@@ -1,7 +1,9 @@
 import cv2 # pip install opencv-python
 import os, datetime, time
 from tkinter import *
-
+from PIL import Image, ImageTk
+import tkinter as tk
+import threading
 
 def capture_vid(
     save_path: str,
@@ -48,6 +50,36 @@ def capture_vid(
     
     return save_dir
 
+
+# def camthread():
+#     color = []
+#     cap = cv2.VideoCapture("rtsp://admin:neuro1203!@192.168.0.73:554/ISAPI/streaming/channels/101")
+#     panel = None
+    
+#     if (cap.isOpened()==False):
+#         print("Unable to read camera feed")
+        
+#     while True:
+#         ret, color = cap.read()
+#         if (color != []):
+#             # cv2.imshow('uvc', color)
+#             image = cv2.resize(color, (100,100))
+#             image = cv2.cvtColor(color, cv2.COLOR_BGR2RGB)
+#             image = Image.fromarray(image)
+#             image = ImageTk.PhotoImage(image)
+            
+#             if panel is None:
+#                 panel = tk.Label(image=image)
+#                 panel.image = image
+#                 panel.pack(side='left')
+#             else:
+#                 panel.configure(image=image)
+#                 panel.image = image
+
+#             cv2.waitKey(1)
+            
+
+
 if __name__ == "__main__":
     PROJECT_DIR    = os.path.dirname(os.path.abspath(__file__))
     save_path      = f"{PROJECT_DIR}\img_cap"
@@ -60,7 +92,9 @@ if __name__ == "__main__":
         print('clicked')
 
     root = Tk()
-    root.geometry("640x480+100+100") # 가로세로 크기 및 시작위치
+    width, height = 920, 640
+    # root.geometry(f"{width}x{height}+{1920-width}+{1080-height}") # 가로세로 크기 및 시작위치
+    root.geometry(f"{width}x{height}+0+0") # 가로세로 크기 및 시작위치
     root.resizable(False, False) # 가로세로 변경 못하게
     root.title("딥러닝 기반의 신선상품 인식기술 개발") # 창 이름
     Label(root, text="신선제품을 저울에 올리세요").pack(side="top")    
@@ -68,10 +102,15 @@ if __name__ == "__main__":
     ## 영상표시부
     vid_frame = Frame(root, relief="solid", bd=3)
     vid_frame.pack(side='left', expand=True)
-    Label(vid_frame, text='보기').pack()
     # command=capture_vid(save_path)
     pic = PhotoImage(file="C:/home/freshfood/img_cap/banana.png") # jpg는 안됨
-    Label(vid_frame, image=pic).pack()
+    Label(vid_frame, image=pic).pack(side="left")
+    
+    
+    # thread_img = threading.Thread(target=camthread, args=())
+    # thread_img.deamon = True
+    # thread_img.start()
+    
 
     ## 버튼부분
     btn_frame = LabelFrame(root, relief="solid", bd=1, text="버튼")
@@ -83,5 +122,5 @@ if __name__ == "__main__":
     Button(btn_frame, padx=50, pady=20, text="항목 직접입력").pack()
 
     Button(root, padx=50, pady=20, bg="grey", text="점장호출").pack(side="bottom")
+
     root.mainloop()
-    
