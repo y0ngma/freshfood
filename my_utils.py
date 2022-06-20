@@ -56,24 +56,27 @@ if __name__ == "__main__":
     # save_dir = capture_vid(save_path)
     # print(save_dir)
     
-    root = Tk()
-    root.title("딥러닝 기반의 신선상품 인식기술 개발")
-    root.geometry("640x480+100+100")
-    
-    root.resizable(False, False)
-    
     def btncmd():
         print('clicked')
 
+    root = Tk()
+    root.geometry("640x480+100+100") # 가로세로 크기 및 시작위치
+    root.resizable(False, False) # 가로세로 변경 못하게
+    root.title("딥러닝 기반의 신선상품 인식기술 개발") # 창 이름
     Label(root, text="신선제품을 저울에 올리세요").pack(side="top")    
+
+    ## 영상표시부
     vid_frame = Frame(root, relief="solid", bd=3)
     vid_frame.pack(side='left', expand=True)
     Label(vid_frame, text='보기').pack()
-    # pic = PhotoImage(file="")
     # command=capture_vid(save_path)
-    
+    pic = PhotoImage(file="C:/home/freshfood/img_cap/banana.png") # jpg는 안됨
+    Label(vid_frame, image=pic).pack()
+
+    ## 버튼부분
     btn_frame = LabelFrame(root, relief="solid", bd=1, text="버튼")
     btn_frame.pack(side='right', fill='both')
+
     btn1 = Button(btn_frame, padx=50, pady=20, fg='blue', bg='pink', command=btncmd, text="탐지")
     btn1.pack(side='bottom')
     Button(btn_frame, padx=50, pady=20, text="다시탐지").pack()
