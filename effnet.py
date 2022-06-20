@@ -3,6 +3,8 @@ from PIL import Image
 import torch
 from torchvision import transforms
 from efficientnet_pytorch import EfficientNet
+import cv2
+import my_utils
 
 
 PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -21,14 +23,17 @@ model      = EfficientNet.from_pretrained(model_name, num_classes=10)
 model.load_state_dict(torch.load(f"{model_path}/20220617_epoch@4.pt"))
 model.eval()
 
+
 ## 캡쳐하기
 if not os.path.isdir(data_dir): os.makedirs(data_dir)
-filename    = "pineapple.jpg"
-img         = Image.open(f"{data_dir}/{filename}")
-# img.show()
-print('원본 이미지크기', img.size)
+# filename    = "pineapple.jpg"
+# img         = Image.open(f"{data_dir}/{filename}")
+img_dir = my_utils.capture_vid(data_dir)
 
 ## Preprocess image
+img         = Image.open(img_dir)
+# img.show()
+print('원본 이미지크기', img.size)
 tfms = transforms.Compose(
     [transforms.Resize(224),
      transforms.ToTensor(),
