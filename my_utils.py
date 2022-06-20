@@ -57,21 +57,28 @@ if __name__ == "__main__":
     # print(save_dir)
     
     root = Tk()
-    root.title("과일을 카메라에 비추세요")
+    root.title("딥러닝 기반의 신선상품 인식기술 개발")
     root.geometry("640x480+100+100")
     
     root.resizable(False, False)
     
     def btncmd():
         print('clicked')
-        
-    btn1 = Button(root, padx=30, pady=20, fg='blue', bg='pink', command=btncmd, text="btn1")
-    btn1.pack()
-    btn2 = Button(root, padx=30, pady=20, text="btn2")
-    btn2.pack()
-    btn3 = Button(root, padx=30, pady=20, text="btn3")
-    btn3.pack()
-    btn4 = Button(root, padx=30, pady=20, text="btn4")
-    btn4.pack()
+
+    Label(root, text="신선제품을 저울에 올리세요").pack(side="top")    
+    vid_frame = Frame(root, relief="solid", bd=3)
+    vid_frame.pack(side='left', expand=True)
+    Label(vid_frame, text='보기').pack()
+    # pic = PhotoImage(file="")
+    # command=capture_vid(save_path)
+    
+    btn_frame = LabelFrame(root, relief="solid", bd=1, text="버튼")
+    btn_frame.pack(side='right', fill='both')
+    btn1 = Button(btn_frame, padx=50, pady=20, fg='blue', bg='pink', command=btncmd, text="탐지")
+    btn1.pack(side='bottom')
+    Button(btn_frame, padx=50, pady=20, text="다시탐지").pack()
+    Button(btn_frame, padx=50, pady=20, text="항목 직접입력").pack()
+
+    Button(root, padx=50, pady=20, bg="grey", text="점장호출").pack(side="bottom")
     root.mainloop()
     
