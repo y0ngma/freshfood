@@ -1,5 +1,6 @@
 import cv2 # pip install opencv-python
 import os, datetime, time
+from tkinter import *
 
 
 def capture_vid(
@@ -52,5 +53,25 @@ if __name__ == "__main__":
     save_path      = f"{PROJECT_DIR}\img_cap"
     if not os.path.isdir(save_path): os.makedirs(save_path)
 
-    save_dir = capture_vid(save_path)
-    print(save_dir)
+    # save_dir = capture_vid(save_path)
+    # print(save_dir)
+    
+    root = Tk()
+    root.title("과일을 카메라에 비추세요")
+    root.geometry("640x480+100+100")
+    
+    root.resizable(False, False)
+    
+    def btncmd():
+        print('clicked')
+        
+    btn1 = Button(root, padx=30, pady=20, fg='blue', bg='pink', command=btncmd, text="btn1")
+    btn1.pack()
+    btn2 = Button(root, padx=30, pady=20, text="btn2")
+    btn2.pack()
+    btn3 = Button(root, padx=30, pady=20, text="btn3")
+    btn3.pack()
+    btn4 = Button(root, padx=30, pady=20, text="btn4")
+    btn4.pack()
+    root.mainloop()
+    
