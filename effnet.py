@@ -10,47 +10,46 @@ PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
 model_path  = f"{os.path.dirname(PROJECT_DIR)}/saved_models/freshfood"
 data_dir    = f"{PROJECT_DIR}/img_cap" # C:/home/freshfood/img_cap
 label_dir   = f'{data_dir}/labels_map.txt'
+
+# Load ImageNet class names
+labels_map = json.load(open(label_dir))
+labels_map = [labels_map[str(i)] for i in range(len(labels_map))]
+
+## 모델 로드
+model_name = 'efficientnet-b0'  # b5
+model      = EfficientNet.from_pretrained(model_name, num_classes=10)
+model.load_state_dict(torch.load(f"{model_path}/20220617_epoch@4.pt"))
+model.eval()
+
+## 캡쳐하기
+if not os.path.isdir(data_dir): os.makedirs(data_dir)
 filename    = "pineapple.jpg"
 img         = Image.open(f"{data_dir}/{filename}")
 # img.show()
-print('원본이미지크기', img.size)
+print('원본 이미지크기', img.size)
 
-# 캡쳐하기
-if not os.path.isdir(data_dir): os.makedirs(data_dir)
-
-# Preprocess image
+## Preprocess image
 tfms = transforms.Compose(
     [transforms.Resize(224),
      transforms.ToTensor(),
      transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
      ])
 img = tfms(img).unsqueeze(0)
-print(img.shape)
-
-model_name = 'efficientnet-b0'  # b5
 image_size = EfficientNet.get_image_size(model_name)
-# print(image_size)
-model = EfficientNet.from_pretrained(model_name, num_classes=10)
-model.load_state_dict(torch.load(f"{model_path}/20220617_epoch@4.pt"))
-# features = model.extract_features(img)
-# print(features.shape)
+print("EfficientNet.get_image_size(model_name) = ", image_size)
+features   = model.extract_features(img)
+print("model.extract_features(img).shape = ", features.shape)
+print("img.shape = ", img.shape)
 
-# Load ImageNet class names
-labels_map = json.load(open(label_dir))
-labels_map = [labels_map[str(i)] for i in range(len(labels_map))]
-
-# 시간측정
-start_time = datetime.datetime.now()
 
 # Classify
-model.eval()
+start_time = datetime.datetime.now() # 시간측정
 with torch.no_grad():
     outputs = model(img)
-
-print("소요시간=> ", datetime.datetime.now() - start_time)
     
 # Print predictions
 print('---------')
 for idx in torch.topk(outputs, k=5).indices.squeeze(0).tolist():
     prob = torch.softmax(outputs, dim=1)[0, idx].item()
     print('{label:<75} ({p:0>6.2f}%)'.format(label=labels_map[idx], p=prob*100))
+print("소요시간=> ", datetime.datetime.now() - start_time)
