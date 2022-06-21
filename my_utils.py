@@ -84,43 +84,48 @@ class App:
     def __init__(self, window, window_title, save_path='./', video_source=0):
         self.window = window
         self.window.title(window_title)
-        Label(window, text="신선제품을 저울에 올리세요").pack(side="top")
-        
-        ## 영상표시부
-        vid_frame = Frame(window, relief="solid", bd=3)
-        vid_frame.pack(side="left", expand=True)
-
         self.video_source = video_source
         self.vid = MyVideoCapture(video_source)
 
+        ## 영상폭+GUI패널폭 여유를 줘서 윈도우 폭 설정(영상이 너무 큰 경우 줄임)
         if (self.vid.width > 1280)|(self.vid.height > 720):
-            self.canvas = tkinter.Canvas(vid_frame, width = 1280, height = 720)
+            canvas_w, canvas_h = 1280, 720
         else:
-            self.canvas = tkinter.Canvas(vid_frame, width = self.vid.width, height = self.vid.height)
-    
+            canvas_w, canvas_h = self.vid.width, self.vid.height
+
+        Label(window, text="신선제품을 저울에 올리세요").pack(side="top")
+        GUI_pad = 200
+        window.geometry(f'{int(canvas_w+GUI_pad)}x{int(canvas_h)}+0+0') # 가로세로 크기 및 시작위치
+        # window.resizable(False, False) # 가로세로 변경 못하게
+
+        ## 영상표시부
+        vid_frame   = Frame(window, relief="solid", bd=3)
+        self.canvas = tkinter.Canvas(vid_frame, width=canvas_w, height=canvas_h)
+        vid_frame.pack(side="left", expand=True)
         self.canvas.pack()
 
         ## GUI부 틀
         gui_frame = Frame(window, relief="solid", bd=0)
         gui_frame.pack(side="right", expand=True)
-        ## 메세지부
+        ## 탐지 항목 확인부
         msg_frame = LabelFrame(gui_frame, relief="solid", bd=1, text="품목명을 확인하세요")
-        msg_frame.pack(side="top", fill='both')
-        
+        msg_frame.pack(side="top")
+        # msg_frame.pack(side="top", fill='both')
         item_var = StringVar()
         btn_item1 = Radiobutton(msg_frame, text="사과", value="apple", variable=item_var)
         btn_item1.select()
         btn_item2 = Radiobutton(msg_frame, text="바나나", value="banana", variable=item_var)
         btn_item3 = Radiobutton(msg_frame, text="가지", value="eggplant", variable=item_var)
         btn_item4 = Radiobutton(msg_frame, text="파인애플", value="pineapple", variable=item_var)
+        btn_item5 = Entry(msg_frame, width=80)
+        # btn_item5 = Text(msg_frame, width=80, height=10)
         btn_item1.pack()
         btn_item2.pack()
         btn_item3.pack()
         btn_item4.pack()
-        # btn_item5 = Text(msg_frame, width=80, height=10)
-        btn_item5 = Entry(msg_frame, width=80)
-        btn_item5.insert(0,"품목이 없는 경우 입력하세요")
         btn_item5.pack()
+        btn_item5.insert(0, # 문구 입력 위치 (row, col)
+                         "품목이 없는 경우 입력하세요")
         
         def get_var():
             """수정/확인 한 품목명을 가져와서 품목별 단가와 무게를 곱하여 가격 도출"""
@@ -133,8 +138,8 @@ class App:
 
         ## 버튼부
         btn_frame = LabelFrame(gui_frame, relief="solid", bd=1, text="버튼을 누르세요")
-        btn_frame.pack(side="bottom", fill="both")
-        
+        btn_frame.pack(side="bottom")
+
         self.btn_snapshot = tkinter.Button(
             btn_frame, padx=80, pady=20, text='탐지', fg='blue', bg='pink', command = self.snapshot(save_path))
         # self.btn_snapshot.pack(anchor = tkinter.CENTER, expand=True)
@@ -150,7 +155,7 @@ class App:
 
         self.window.mainloop()
 
-        
+
     def snapshot(self, save_path, location='office'):
         ret, frame = self.vid.get_frame()
         if ret:
@@ -203,45 +208,5 @@ if __name__ == "__main__":
     save_path      = f"{PROJECT_DIR}\img_cap"
     if not os.path.isdir(save_path): os.makedirs(save_path)
 
-    App(tkinter.Tk(), "Tkinter and OpenCV", save_path+"/", video_source="rtsp://admin:neuro1203!@192.168.0.73:554/ISAPI/streaming/channels/101")
-    # App(tkinter.Tk(), "Tkinter and OpenCV", save_path+"/", video_source=0)
-
-    # # save_dir = capture_vid(save_path)
-    # # print(save_dir)
-    
-    # def btncmd():
-    #     print('clicked')
-
-    # root = Tk()
-    # width, height = 920, 640
-    # # root.geometry(f"{width}x{height}+{1920-width}+{1080-height}") # 가로세로 크기 및 시작위치
-    # root.geometry(f"{width}x{height}+0+0") # 가로세로 크기 및 시작위치
-    # root.resizable(False, False) # 가로세로 변경 못하게
-    # root.title("딥러닝 기반의 신선상품 인식기술 개발") # 창 이름
-    # Label(root, text="신선제품을 저울에 올리세요").pack(side="top")    
-
-    # ## 영상표시부
-    # vid_frame = Frame(root, relief="solid", bd=3)
-    # vid_frame.pack(side='left', expand=True)
-    # # command=capture_vid(save_path)
-    # pic = PhotoImage(file="C:/home/freshfood/img_cap/banana.png") # jpg는 안됨
-    # Label(vid_frame, image=pic).pack(side="left")
-    
-    
-    # # thread_img = threading.Thread(target=camthread, args=())
-    # # thread_img.deamon = True
-    # # thread_img.start()
-    
-
-    # ## 버튼부분
-    # btn_frame = LabelFrame(root, relief="solid", bd=1, text="버튼")
-    # btn_frame.pack(side='right', fill='both')
-
-    # btn1 = Button(btn_frame, padx=50, pady=20, fg='blue', bg='pink', command=btncmd, text="탐지")
-    # btn1.pack(side='bottom')
-    # Button(btn_frame, padx=50, pady=20, text="다시탐지").pack()
-    # Button(btn_frame, padx=50, pady=20, text="항목 직접입력").pack()
-
-    # Button(root, padx=50, pady=20, bg="grey", text="점장호출").pack(side="bottom")
-
-    # root.mainloop()
+    # App(tkinter.Tk(), "Tkinter and OpenCV", save_path+"/", video_source="rtsp://admin:neuro1203!@192.168.0.73:554/ISAPI/streaming/channels/101")
+    App(tkinter.Tk(), "Tkinter and OpenCV", save_path+"/", video_source=0)
