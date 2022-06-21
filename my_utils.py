@@ -80,7 +80,7 @@ def capture_vid(
 
 import PIL.Image, PIL.ImageTk
 class App:
-    def __init__(self, window, window_title, video_source=0):
+    def __init__(self, window, window_title, save_path='./', video_source=0):
         self.window = window
         self.window.title(window_title)
         self.video_source = video_source
@@ -90,20 +90,22 @@ class App:
         self.canvas = tkinter.Canvas(window, width = self.vid.width, height = self.vid.height)
         self.canvas.pack()
 
-        # # 캡쳐 버튼
-        # self.btn_snapshot = tkinter.Button(window, text='Snapshot', width=50, command = self.snapshot)
-        # self.btn_snapshot.pack(anchor = tkinter.LEFT, expand=True)
+        ## 캡쳐 버튼
+        self.btn_snapshot = tkinter.Button(
+            window, text='Snapshot', width=50, command = self.snapshot(save_path))
+        self.btn_snapshot.pack(anchor = tkinter.CENTER, expand=True)
                 
-        # 한번 호출되면, 업데이트 메소드가 매 밀리초마다 호출됨
+        ## 한번 호출되면, 업데이트 메소드가 매 밀리초마다 호출됨
         self.delay = 15
         self.update()
 
         self.window.mainloop()
         
-    # def snapshot(self):
-    #     ret, frame = self.vid.get_frame()
-    #     if ret:
-    #         cv2.imwrite()
+    def snapshot(self, save_path, location='office'):
+        ret, frame = self.vid.get_frame()
+        if ret:
+            save_dir = f'{save_path}\{location}_{time.strftime("%Y-%m-%d %H-%M-%S")}.jpg'
+            cv2.imwrite(save_dir, cv2.cvtColor(frame, cv2.COLOR_RGB2BGR))
         
 
     def update(self):
