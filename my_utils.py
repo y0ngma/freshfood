@@ -80,6 +80,7 @@ def capture_vid(
 
 import PIL.Image, PIL.ImageTk
 class App:
+
     def __init__(self, window, window_title, save_path='./', video_source=0):
         self.window = window
         self.window.title(window_title)
@@ -87,7 +88,11 @@ class App:
 
         self.vid = MyVideoCapture(video_source)
         
-        self.canvas = tkinter.Canvas(window, width = self.vid.width, height = self.vid.height)
+        if (self.vid.width > 1280)|(self.vid.height > 720):
+            self.canvas = tkinter.Canvas(window, width = 1280, height = 720)
+        else:
+            self.canvas = tkinter.Canvas(window, width = self.vid.width, height = self.vid.height)
+    
         self.canvas.pack()
 
         ## 캡쳐 버튼
@@ -100,32 +105,38 @@ class App:
         self.update()
 
         self.window.mainloop()
+
         
     def snapshot(self, save_path, location='office'):
         ret, frame = self.vid.get_frame()
         if ret:
             save_dir = f'{save_path}\{location}_{time.strftime("%Y-%m-%d %H-%M-%S")}.jpg'
             cv2.imwrite(save_dir, cv2.cvtColor(frame, cv2.COLOR_RGB2BGR))
-        
+
 
     def update(self):
         ret, frame = self.vid.get_frame()
         if ret:
-            self.photo = PIL.ImageTk.PhotoImage(image=PIL.Image.fromarray(frame))
+            image=PIL.Image.fromarray(frame)
+            if (image.width > 1280)|(image.height > 720):
+                image = image.resize((1280,720), PIL.Image.NEAREST)
+            self.photo = PIL.ImageTk.PhotoImage(image=image)
             self.canvas.create_image(0,0,image=self.photo, anchor = tkinter.NW)
-
         self.window.after(self.delay, self.update)
-        
-        
-        
+
+
+
 class MyVideoCapture:
+
     def __init__(self, video_source=0):
         self.vid = cv2.VideoCapture(video_source)
         if not self.vid.isOpened():
             raise ValueError("비디오 소스 열기 실패", video_source)
         self.width = self.vid.get(cv2.CAP_PROP_FRAME_WIDTH)
         self.height = self.vid.get(cv2.CAP_PROP_FRAME_HEIGHT)
-        
+        print("original size of width:{} height:{}".format(self.width, self.height))
+            
+
     def get_frame(self):
         if self.vid.isOpened():
             ret, frame = self.vid.read()
@@ -135,17 +146,21 @@ class MyVideoCapture:
                 return (ret, None)
         else:
             return (ret, None)
+
         
     def __del__(self):
         if self.vid.isOpened():
             self.vid.release()
+
+
 
 if __name__ == "__main__":
     PROJECT_DIR    = os.path.dirname(os.path.abspath(__file__))
     save_path      = f"{PROJECT_DIR}\img_cap"
     if not os.path.isdir(save_path): os.makedirs(save_path)
 
-    App(tkinter.Tk(), "Tkinter and OpenCV")
+    App(tkinter.Tk(), "Tkinter and OpenCV", save_path+"/", video_source="rtsp://admin:neuro1203!@192.168.0.73:554/ISAPI/streaming/channels/101")
+    # App(tkinter.Tk(), "Tkinter and OpenCV", save_path+"/", video_source=0)
 
     # # save_dir = capture_vid(save_path)
     # # print(save_dir)
