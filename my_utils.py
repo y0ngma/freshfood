@@ -84,22 +84,52 @@ class App:
     def __init__(self, window, window_title, save_path='./', video_source=0):
         self.window = window
         self.window.title(window_title)
-        self.video_source = video_source
-
-        self.vid = MyVideoCapture(video_source)
+        Label(window, text="신선제품을 저울에 올리세요").pack(side="top")
         
+        ## 영상표시부
+        vid_frame = Frame(window, relief="solid", bd=3)
+        vid_frame.pack(side="left", expand=True)
+
+        self.video_source = video_source
+        self.vid = MyVideoCapture(video_source)
+
         if (self.vid.width > 1280)|(self.vid.height > 720):
-            self.canvas = tkinter.Canvas(window, width = 1280, height = 720)
+            self.canvas = tkinter.Canvas(vid_frame, width = 1280, height = 720)
         else:
-            self.canvas = tkinter.Canvas(window, width = self.vid.width, height = self.vid.height)
+            self.canvas = tkinter.Canvas(vid_frame, width = self.vid.width, height = self.vid.height)
     
         self.canvas.pack()
 
-        ## 캡쳐 버튼
+        ## GUI부 틀
+        gui_frame = Frame(window, relief="solid", bd=0)
+        gui_frame.pack(side="right")
+        ## 메세지부
+        msg_frame = LabelFrame(gui_frame, relief="solid", bd=1, text="품목명을 확인하세요")
+        msg_frame.pack(side="top", fill='both')
+        
+        item_var = StringVar()
+        btn_itme1 = Radiobutton(msg_frame, text="사과", value="apple", variable=item_var)
+        btn_itme2 = Radiobutton(msg_frame, text="바나나", value="banana", variable=item_var)
+        btn_itme3 = Radiobutton(msg_frame, text="가지", value="apple", variable=item_var)
+        btn_itme4 = Radiobutton(msg_frame, text="파인애플", value="pineapple", variable=item_var)
+        btn_itme1.pack()
+        btn_itme2.pack()
+        btn_itme3.pack()
+        btn_itme4.pack()
+
+        ## 버튼부
+        btn_frame = LabelFrame(gui_frame, relief="solid", bd=1, text="버튼을 누르세요")
+        btn_frame.pack(side="bottom", fill="both")
+        
         self.btn_snapshot = tkinter.Button(
-            window, text='Snapshot', width=50, command = self.snapshot(save_path))
-        self.btn_snapshot.pack(anchor = tkinter.CENTER, expand=True)
-                
+            btn_frame, padx=80, pady=20, text='탐지', fg='blue', bg='pink', command = self.snapshot(save_path))
+        # self.btn_snapshot.pack(anchor = tkinter.CENTER, expand=True)
+        self.btn_snapshot.pack(side="top")
+        Button(btn_frame, padx=80, pady=20, text="항목 직접입력").pack()
+        Button(btn_frame, padx=80, pady=20, text="무게 측정").pack()
+        Button(btn_frame, padx=80, pady=20, text="가격표 발행").pack()
+        Button(btn_frame, padx=80, pady=20, text="점장호출", bg="grey").pack()
+
         ## 한번 호출되면, 업데이트 메소드가 매 밀리초마다 호출됨
         self.delay = 15
         self.update()
