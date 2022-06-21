@@ -102,20 +102,34 @@ class App:
 
         ## GUI부 틀
         gui_frame = Frame(window, relief="solid", bd=0)
-        gui_frame.pack(side="right")
+        gui_frame.pack(side="right", expand=True)
         ## 메세지부
         msg_frame = LabelFrame(gui_frame, relief="solid", bd=1, text="품목명을 확인하세요")
         msg_frame.pack(side="top", fill='both')
         
         item_var = StringVar()
-        btn_itme1 = Radiobutton(msg_frame, text="사과", value="apple", variable=item_var)
-        btn_itme2 = Radiobutton(msg_frame, text="바나나", value="banana", variable=item_var)
-        btn_itme3 = Radiobutton(msg_frame, text="가지", value="apple", variable=item_var)
-        btn_itme4 = Radiobutton(msg_frame, text="파인애플", value="pineapple", variable=item_var)
-        btn_itme1.pack()
-        btn_itme2.pack()
-        btn_itme3.pack()
-        btn_itme4.pack()
+        btn_item1 = Radiobutton(msg_frame, text="사과", value="apple", variable=item_var)
+        btn_item1.select()
+        btn_item2 = Radiobutton(msg_frame, text="바나나", value="banana", variable=item_var)
+        btn_item3 = Radiobutton(msg_frame, text="가지", value="eggplant", variable=item_var)
+        btn_item4 = Radiobutton(msg_frame, text="파인애플", value="pineapple", variable=item_var)
+        btn_item1.pack()
+        btn_item2.pack()
+        btn_item3.pack()
+        btn_item4.pack()
+        # btn_item5 = Text(msg_frame, width=80, height=10)
+        btn_item5 = Entry(msg_frame, width=80)
+        btn_item5.insert(0,"품목이 없는 경우 입력하세요")
+        btn_item5.pack()
+        
+        def get_var():
+            """수정/확인 한 품목명을 가져와서 품목별 단가와 무게를 곱하여 가격 도출"""
+            Ent = btn_item5.get()
+            if not Ent == "품목이 없는 경우 입력하세요": print(Ent)
+            else: print(item_var.get())
+
+        btn_get = Button(msg_frame, text="수정/확인", command=get_var)
+        btn_get.pack()
 
         ## 버튼부
         btn_frame = LabelFrame(gui_frame, relief="solid", bd=1, text="버튼을 누르세요")
