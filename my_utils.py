@@ -5,6 +5,11 @@ from PIL import Image, ImageTk
 import tkinter
 import threading
 
+import json
+import torch
+from torchvision import transforms
+from efficientnet_pytorch import EfficientNet
+
 def capture_vid(
     save_path: str,
     location: str="office",
@@ -81,7 +86,7 @@ def capture_vid(
 import PIL.Image, PIL.ImageTk
 class App:
 
-    def __init__(self, window, window_title, save_path='./', video_source=0):
+    def __init__(self, window, window_title, label_dir, save_path='./', video_source=0):
         self.window = window
         self.window.title(window_title)
         self.video_source = video_source
@@ -92,6 +97,7 @@ class App:
             canvas_w, canvas_h = 1280, 720
         else:
             canvas_w, canvas_h = self.vid.width, self.vid.height
+
 
         Label(window, text="신선제품을 저울에 올리세요").pack(side="top")
         GUI_pad = 200
@@ -126,7 +132,7 @@ class App:
         btn_item5.pack()
         btn_item5.insert(0, # 문구 입력 위치 (row, col)
                          "품목이 없는 경우 입력하세요")
-        
+
         def get_var():
             """수정/확인 한 품목명을 가져와서 품목별 단가와 무게를 곱하여 가격 도출"""
             Ent = btn_item5.get()
@@ -141,10 +147,12 @@ class App:
         btn_frame.pack(side="bottom")
 
         self.btn_snapshot = tkinter.Button(
-            btn_frame, padx=80, pady=20, text='탐지', fg='blue', bg='pink', command = self.snapshot(save_path))
+            # btn_frame, padx=80, pady=20, text='탐지', fg='blue', bg='pink', command = self.snapshot)
+            # btn_frame, padx=80, pady=20, text='탐지', fg='blue', bg='pink', command = self.snapshot(save_path))
+            btn_frame, padx=80, pady=20, text='탐지', fg='blue', bg='pink', command = self.whatis)
         # self.btn_snapshot.pack(anchor = tkinter.CENTER, expand=True)
         self.btn_snapshot.pack(side="top")
-        Button(btn_frame, padx=80, pady=20, text="항목 직접입력").pack()
+        Button(btn_frame, padx=80, pady=20, text="캡쳐", command = self.snapshot).pack()
         Button(btn_frame, padx=80, pady=20, text="무게 측정").pack()
         Button(btn_frame, padx=80, pady=20, text="가격표 발행").pack()
         Button(btn_frame, padx=80, pady=20, text="점장호출", bg="grey").pack()
@@ -156,11 +164,58 @@ class App:
         self.window.mainloop()
 
 
-    def snapshot(self, save_path, location='office'):
+    def snapshot(self):
+        location='office'
         ret, frame = self.vid.get_frame()
+        PROJECT_DIR    = os.path.dirname(os.path.abspath(__file__))
+        save_path      = f"{PROJECT_DIR}\img_cap"
         if ret:
             save_dir = f'{save_path}\{location}_{time.strftime("%Y-%m-%d %H-%M-%S")}.jpg'
             cv2.imwrite(save_dir, cv2.cvtColor(frame, cv2.COLOR_RGB2BGR))
+
+    
+    def whatis(self):
+    # def whatis(self, model, tfms, labels_map, save_path, location='office'):
+    # def whatis(self, model, tfms, labels_map):
+        """사진한장에 대해 탐지결과를 반환"""
+        # save_dir = self.snapshot(save_path)
+        # self.save_dir = self.snapshot(save_path)
+        # data_dir    = f"{PROJECT_DIR}/img_cap" # C:/home/freshfood/img_cap
+        label_dir   = f'{data_dir}/labels_map.txt'
+        model_path  = f"{os.path.dirname(PROJECT_DIR)}/saved_models/freshfood"
+
+        ## Preprocess image
+        img         = Image.open("C:/home/freshfood/img_cap/pineapple.jpg")
+        # Load ImageNet class names
+        labels_map = json.load(open(label_dir))
+        labels_map = [labels_map[str(i)] for i in range(len(labels_map))]
+
+        ## 모델 로드
+        model_name = 'efficientnet-b0'  # b5
+        model      = EfficientNet.from_pretrained(model_name, num_classes=10)
+        model.load_state_dict(torch.load(f"{model_path}/20220617_epoch@4.pt"))
+        model.eval()
+
+        tfms = transforms.Compose(
+            [transforms.Resize(224),
+            transforms.ToTensor(),
+            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+            ])
+
+        img = tfms(img).unsqueeze(0)
+
+        # Classify
+        start_time = datetime.datetime.now() # 시간측정
+        with torch.no_grad():
+            outputs = model(img)
+        # Print predictions
+        print('---------')
+        for idx in torch.topk(outputs, k=5).indices.squeeze(0).tolist():
+            prob = torch.softmax(outputs, dim=1)[0, idx].item()
+            print('{label:<75} ({p:0>6.2f}%)'.format(label=labels_map[idx], p=prob*100))
+        print("소요시간=> ", datetime.datetime.now() - start_time)
+
+        # return output
 
 
     def update(self):
@@ -184,7 +239,7 @@ class MyVideoCapture:
         self.width = self.vid.get(cv2.CAP_PROP_FRAME_WIDTH)
         self.height = self.vid.get(cv2.CAP_PROP_FRAME_HEIGHT)
         print("original size of width:{} height:{}".format(self.width, self.height))
-            
+
 
     def get_frame(self):
         if self.vid.isOpened():
@@ -208,5 +263,13 @@ if __name__ == "__main__":
     save_path      = f"{PROJECT_DIR}\img_cap"
     if not os.path.isdir(save_path): os.makedirs(save_path)
 
+
+    PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
+    # data_path   = f"{os.path.dirname(PROJECT_DIR)}/dataset/freshfood/all"
+    model_path  = f"{os.path.dirname(PROJECT_DIR)}/saved_models/freshfood"
+    data_dir    = f"{PROJECT_DIR}/img_cap" # C:/home/freshfood/img_cap
+    label_dir   = f'{data_dir}/labels_map.txt'
+
+
     # App(tkinter.Tk(), "Tkinter and OpenCV", save_path+"/", video_source="rtsp://admin:neuro1203!@192.168.0.73:554/ISAPI/streaming/channels/101")
-    App(tkinter.Tk(), "Tkinter and OpenCV", save_path+"/", video_source=0)
+    App(tkinter.Tk(), "Tkinter and OpenCV", label_dir, save_path+"/", video_source=0)
