@@ -86,18 +86,40 @@ def capture_vid(
 import PIL.Image, PIL.ImageTk
 class App:
 
-    def __init__(self, window, window_title, label_dir, save_path='./', video_source=0):
+    def __init__(self, window, window_title, video_source=0):
         self.window = window
         self.window.title(window_title)
         self.video_source = video_source
         self.vid = MyVideoCapture(video_source)
+
+        location       ='office'
+        PROJECT_DIR    = os.path.dirname(os.path.abspath(__file__))
+        self.snapshot_dir = f"{PROJECT_DIR}/img_cap"
+        label_dir     = f'{PROJECT_DIR}/img_cap/labels_map.txt'
+        model_path    = f"{os.path.dirname(PROJECT_DIR)}/saved_models/freshfood"
+
+        # Load ImageNet class names
+        labels_map = json.load(open(label_dir))
+        self.labels_map = [labels_map[str(i)] for i in range(len(labels_map))]
+
+        ## 모델 로드
+        model_name = 'efficientnet-b0'  # b5
+        self.model = EfficientNet.from_pretrained(model_name, num_classes=10)
+        self.model.load_state_dict(torch.load(f"{model_path}/20220617_epoch@4.pt"))
+        self.model.eval()
+
+        self.tfms = transforms.Compose(
+            [transforms.Resize(224),
+            transforms.ToTensor(),
+            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+            ])
+
 
         ## 영상폭+GUI패널폭 여유를 줘서 윈도우 폭 설정(영상이 너무 큰 경우 줄임)
         if (self.vid.width > 1280)|(self.vid.height > 720):
             canvas_w, canvas_h = 1280, 720
         else:
             canvas_w, canvas_h = self.vid.width, self.vid.height
-
 
         Label(window, text="신선제품을 저울에 올리세요").pack(side="top")
         GUI_pad = 200
@@ -147,8 +169,6 @@ class App:
         btn_frame.pack(side="bottom")
 
         self.btn_snapshot = tkinter.Button(
-            # btn_frame, padx=80, pady=20, text='탐지', fg='blue', bg='pink', command = self.snapshot)
-            # btn_frame, padx=80, pady=20, text='탐지', fg='blue', bg='pink', command = self.snapshot(save_path))
             btn_frame, padx=80, pady=20, text='탐지', fg='blue', bg='pink', command = self.whatis)
         # self.btn_snapshot.pack(anchor = tkinter.CENTER, expand=True)
         self.btn_snapshot.pack(side="top")
@@ -165,57 +185,35 @@ class App:
 
 
     def snapshot(self):
-        location='office'
         ret, frame = self.vid.get_frame()
-        PROJECT_DIR    = os.path.dirname(os.path.abspath(__file__))
-        save_path      = f"{PROJECT_DIR}\img_cap"
         if ret:
-            save_dir = f'{save_path}\{location}_{time.strftime("%Y-%m-%d %H-%M-%S")}.jpg'
-            cv2.imwrite(save_dir, cv2.cvtColor(frame, cv2.COLOR_RGB2BGR))
+            self.snapshot_file = f'{self.snapshot_dir}\{time.strftime("%Y-%m-%d %H-%M-%S")}.jpg'
+            cv2.imwrite(self.snapshot_file, cv2.cvtColor(frame, cv2.COLOR_RGB2BGR))
+            return self.snapshot_file
 
     
     def whatis(self):
-    # def whatis(self, model, tfms, labels_map, save_path, location='office'):
-    # def whatis(self, model, tfms, labels_map):
         """사진한장에 대해 탐지결과를 반환"""
-        # save_dir = self.snapshot(save_path)
-        # self.save_dir = self.snapshot(save_path)
-        # data_dir    = f"{PROJECT_DIR}/img_cap" # C:/home/freshfood/img_cap
-        label_dir   = f'{data_dir}/labels_map.txt'
-        model_path  = f"{os.path.dirname(PROJECT_DIR)}/saved_models/freshfood"
+        self.save_dir = self.snapshot()
 
         ## Preprocess image
-        img         = Image.open("C:/home/freshfood/img_cap/pineapple.jpg")
-        # Load ImageNet class names
-        labels_map = json.load(open(label_dir))
-        labels_map = [labels_map[str(i)] for i in range(len(labels_map))]
-
-        ## 모델 로드
-        model_name = 'efficientnet-b0'  # b5
-        model      = EfficientNet.from_pretrained(model_name, num_classes=10)
-        model.load_state_dict(torch.load(f"{model_path}/20220617_epoch@4.pt"))
-        model.eval()
-
-        tfms = transforms.Compose(
-            [transforms.Resize(224),
-            transforms.ToTensor(),
-            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
-            ])
-
-        img = tfms(img).unsqueeze(0)
+        img = Image.open(self.save_dir)
+        img = self.tfms(img).unsqueeze(0)
 
         # Classify
         start_time = datetime.datetime.now() # 시간측정
         with torch.no_grad():
-            outputs = model(img)
+            outputs = self.model(img)
         # Print predictions
+        results = list()
         print('---------')
         for idx in torch.topk(outputs, k=5).indices.squeeze(0).tolist():
             prob = torch.softmax(outputs, dim=1)[0, idx].item()
-            print('{label:<75} ({p:0>6.2f}%)'.format(label=labels_map[idx], p=prob*100))
+            print('{label:<75} ({p:0>6.2f}%)'.format(label=self.labels_map[idx], p=prob*100))
+            results.append((self.labels_map[idx], prob*100))
         print("소요시간=> ", datetime.datetime.now() - start_time)
 
-        # return output
+        return results
 
 
     def update(self):
@@ -259,17 +257,11 @@ class MyVideoCapture:
 
 
 if __name__ == "__main__":
-    PROJECT_DIR    = os.path.dirname(os.path.abspath(__file__))
-    save_path      = f"{PROJECT_DIR}\img_cap"
-    if not os.path.isdir(save_path): os.makedirs(save_path)
+    # PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
+    # model_path  = f"{os.path.dirname(PROJECT_DIR)}/saved_models/freshfood"
+    # save_path   = f"{PROJECT_DIR}/img_cap"
+    # label_dir   = f'{save_path}/labels_map.txt'
+    # if not os.path.isdir(save_path): os.makedirs(save_path)
 
-
-    PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
-    # data_path   = f"{os.path.dirname(PROJECT_DIR)}/dataset/freshfood/all"
-    model_path  = f"{os.path.dirname(PROJECT_DIR)}/saved_models/freshfood"
-    data_dir    = f"{PROJECT_DIR}/img_cap" # C:/home/freshfood/img_cap
-    label_dir   = f'{data_dir}/labels_map.txt'
-
-
-    # App(tkinter.Tk(), "Tkinter and OpenCV", save_path+"/", video_source="rtsp://admin:neuro1203!@192.168.0.73:554/ISAPI/streaming/channels/101")
-    App(tkinter.Tk(), "Tkinter and OpenCV", label_dir, save_path+"/", video_source=0)
+    # App(tkinter.Tk(), "Tkinter and OpenCV", video_source="rtsp://admin:neuro1203!@192.168.0.73:554/ISAPI/streaming/channels/101")
+    App(tkinter.Tk(), "Tkinter and OpenCV")
