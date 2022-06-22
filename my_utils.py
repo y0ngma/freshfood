@@ -140,19 +140,19 @@ class App:
         msg_frame.pack(side="top")
         # msg_frame.pack(side="top", fill='both')
         item_var = StringVar()
-        btn_item1 = Radiobutton(msg_frame, text="사과", value="apple", variable=item_var)
-        btn_item1.select()
-        btn_item2 = Radiobutton(msg_frame, text="바나나", value="banana", variable=item_var)
-        btn_item3 = Radiobutton(msg_frame, text="가지", value="eggplant", variable=item_var)
-        btn_item4 = Radiobutton(msg_frame, text="파인애플", value="pineapple", variable=item_var)
-        btn_item5 = Entry(msg_frame, width=80)
+        self.btn_item1 = Radiobutton(msg_frame, text=f"apple", value="apple", variable=item_var)
+        self.btn_item1.select()
+        self.btn_item2 = Radiobutton(msg_frame, text="바나나", value="banana", variable=item_var)
+        self.btn_item3 = Radiobutton(msg_frame, text="가지", value="eggplant", variable=item_var)
+        self.btn_item4 = Radiobutton(msg_frame, text="파인애플", value="pineapple", variable=item_var)
+        self.btn_item5 = Entry(msg_frame, width=80)
         # btn_item5 = Text(msg_frame, width=80, height=10)
-        btn_item1.pack()
-        btn_item2.pack()
-        btn_item3.pack()
-        btn_item4.pack()
-        btn_item5.pack()
-        btn_item5.insert(0, # 문구 입력 위치 (row, col)
+        self.btn_item1.pack()
+        self.btn_item2.pack()
+        self.btn_item3.pack()
+        self.btn_item4.pack()
+        self.btn_item5.pack()
+        self.btn_item5.insert(0, # 문구 입력 위치 (row, col)
                          "품목이 없는 경우 입력하세요")
 
         def get_var():
@@ -177,12 +177,20 @@ class App:
         Button(btn_frame, padx=80, pady=20, text="가격표 발행").pack()
         Button(btn_frame, padx=80, pady=20, text="점장호출", bg="grey").pack()
 
+        ## 결과값 불러오기
+        # self.results = self.whatis()
+        
+        # btn_item1 = Radiobutton(msg_frame, text=f"{self.results[0][0]:<10} {self.results[0][1]:>6.2f}", value=self.results[0][0], variable=item_var)
+
         ## 한번 호출되면, 업데이트 메소드가 매 밀리초마다 호출됨
         self.delay = 15
         self.update()
 
         self.window.mainloop()
 
+    
+    def changetxt(self):
+        self.btn_item1.configure(text=f"{self.results[0][0]:<10} {self.results[0][1]:>6.2f}")
 
     def snapshot(self):
         ret, frame = self.vid.get_frame()
@@ -205,15 +213,20 @@ class App:
         with torch.no_grad():
             outputs = self.model(img)
         # Print predictions
-        results = list()
+        self.results = list()
         print('---------')
         for idx in torch.topk(outputs, k=5).indices.squeeze(0).tolist():
             prob = torch.softmax(outputs, dim=1)[0, idx].item()
             print('{label:<75} ({p:0>6.2f}%)'.format(label=self.labels_map[idx], p=prob*100))
-            results.append((self.labels_map[idx], prob*100))
+            self.results.append((self.labels_map[idx], prob*100))
         print("소요시간=> ", datetime.datetime.now() - start_time)
+        # self.changetxt()
+        self.btn_item1.configure(text=f"{self.results[0][0]:<10} {self.results[0][1]:>6.2f}%")
+        self.btn_item2.configure(text=f"{self.results[1][0]:<10} {self.results[1][1]:>6.2f}%")
+        self.btn_item3.configure(text=f"{self.results[2][0]:<10} {self.results[2][1]:>6.2f}%")
+        self.btn_item4.configure(text=f"{self.results[3][0]:<10} {self.results[3][1]:>6.2f}%")
 
-        return results
+        return self.results
 
 
     def update(self):
