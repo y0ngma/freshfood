@@ -31,7 +31,7 @@ def imshowt(inp, title=None):
     plt.pause(0.001)  # pause a bit so that plots are updated
 
 
-def train_model(save_path, model, criterion, optimizer, scheduler, num_epochs=25):
+def train_model(save_path, model, criterion, optimizer, scheduler, num_epochs=50):
     since = time.time()
     best_model_wts = copy.deepcopy(model.state_dict())
     best_acc = 0.0
@@ -171,9 +171,9 @@ if __name__ == "__main__":
         "4": "garlic",
         "5": "ginger",
         "6": "grapes",
-        "7": "mango",
+        "7": "paprika",
         "8": "pineapple",
-        "9": "watermelon"
+        "9": "kiwi"
     }
     model_name = 'efficientnet-b0'  # b5
     model = EfficientNet.from_pretrained(model_name, num_classes=len(class_names))
@@ -190,7 +190,7 @@ if __name__ == "__main__":
 
 
     ## make dataset
-    president_dataset = datasets.ImageFolder(
+    mydataset = datasets.ImageFolder(
                                     data_path,
                                     transforms.Compose([
                                         transforms.Resize((224, 224)),
@@ -198,10 +198,10 @@ if __name__ == "__main__":
                                         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
                                     ]))
     ## data split
-    train_idx, tmp_idx = train_test_split(list(range(len(president_dataset))), test_size=0.2, random_state=random_seed)
+    train_idx, tmp_idx = train_test_split(list(range(len(mydataset))), test_size=0.2, random_state=random_seed)
     datasets = {}
-    datasets['train'] = Subset(president_dataset, train_idx)
-    tmp_dataset       = Subset(president_dataset, tmp_idx)
+    datasets['train'] = Subset(mydataset, train_idx)
+    tmp_dataset       = Subset(mydataset, tmp_idx)
 
     val_idx, test_idx = train_test_split(list(range(len(tmp_dataset))), test_size=0.5, random_state=random_seed)
     datasets['valid'] = Subset(tmp_dataset, val_idx)

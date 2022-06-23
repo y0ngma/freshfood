@@ -5,8 +5,8 @@ import numpy as np
 PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
 data_path   = f"{os.path.dirname(PROJECT_DIR)}/dataset/{os.path.basename(PROJECT_DIR)}"
 one_folder  = "C:/home/dataset/freshfood/all"
-classes     = [#"beetroot","bell pepper","cabbage","capsicum","chilli pepper","corn","cucumber","eggplant","jalepeno","kiwi","lemon","lettuce","onion","orange","paprika","pear","peas","pomegranate","potato","raddish","soy beans","spinach","sweetcorn","sweetpotato","tomato","turnip",
-"apple","banana","carrot","cauliflower","garlic","ginger","grapes","mango","pineapple","watermelon",
+classes     = [#"beetroot","bell pepper","cabbage","capsicum","chilli pepper","corn","cucumber","eggplant","jalepeno","lemon","lettuce","onion","orange","pear","peas","pomegranate","potato","raddish","soy beans","spinach","sweetcorn","sweetpotato","tomato","turnip","mango","watermelon",
+"apple","banana","carrot","cauliflower","garlic","ginger","grapes","paprika","pineapple","kiwi",
 ]
 
 def toRGBA(file):
