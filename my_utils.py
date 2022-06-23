@@ -92,11 +92,10 @@ class App:
         self.video_source = video_source
         self.vid = MyVideoCapture(video_source)
 
-        location       ='office'
-        PROJECT_DIR    = os.path.dirname(os.path.abspath(__file__))
-        self.snapshot_dir = f"{PROJECT_DIR}/img_cap"
-        label_dir     = f'{PROJECT_DIR}/img_cap/labels_map.txt'
+        PROJECT_DIR   = os.path.dirname(os.path.abspath(__file__))
+        label_dir     = f'{PROJECT_DIR}/sample/labels_map.txt'
         model_path    = f"{os.path.dirname(PROJECT_DIR)}/saved_models/freshfood"
+        self.snapshot_dir = f"{os.path.dirname(PROJECT_DIR)}/img_cap"
 
         # Load ImageNet class names
         labels_map = json.load(open(label_dir))
@@ -105,7 +104,7 @@ class App:
         ## 모델 로드
         model_name = 'efficientnet-b0'  # b5
         self.model = EfficientNet.from_pretrained(model_name, num_classes=10)
-        self.model.load_state_dict(torch.load(f"{model_path}/20220617_epoch@4.pt"))
+        self.model.load_state_dict(torch.load(f"{model_path}/20220623_epoch@7.pt"))
         self.model.eval()
 
         self.tfms = transforms.Compose(
@@ -229,6 +228,8 @@ class App:
         self.btn_item3.configure(text="{: <19}{:>6.2f}%".format(self.results[2][0], self.results[2][1]))
         self.btn_item4.configure(text="{: <19}{:>6.2f}%".format(self.results[3][0], self.results[3][1]))
 
+        ## 
+
         return self.results
 
 
@@ -279,5 +280,5 @@ if __name__ == "__main__":
     # label_dir   = f'{save_path}/labels_map.txt'
     # if not os.path.isdir(save_path): os.makedirs(save_path)
 
-    # App(tkinter.Tk(), "Tkinter and OpenCV", video_source="rtsp://admin:neuro1203!@192.168.0.73:554/ISAPI/streaming/channels/101")
-    App(tkinter.Tk(), "Tkinter and OpenCV")
+    App(tkinter.Tk(), "Tkinter and OpenCV", video_source="rtsp://admin:neuro1203!@192.168.0.73:554/ISAPI/streaming/channels/101")
+    # App(tkinter.Tk(), "Tkinter and OpenCV", video_source=1)

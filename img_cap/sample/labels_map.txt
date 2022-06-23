@@ -1,0 +1,1 @@
+{"0": "apple", "1": "banana", "2": "carrot", "3": "cauliflower", "4": "garlic", "5": "ginger", "6": "grapes", "7": "paprika", "8": "pineapple", "9": "kiwi"}
