@@ -138,6 +138,7 @@ class App:
         ## 탐지 항목 확인부
         msg_frame = LabelFrame(gui_frame, relief="solid", bd=1, text="품목명을 확인하세요")
         msg_frame.pack(side="top")
+        Label(msg_frame, text="{: <19}{:>6}".format('항목명', '정확도')).pack()
         # msg_frame.pack(side="top", fill='both')
         item_var = StringVar()
         self.btn_item1 = Radiobutton(msg_frame, text=f"apple", value="apple", variable=item_var)
@@ -157,7 +158,7 @@ class App:
 
         def get_var():
             """수정/확인 한 품목명을 가져와서 품목별 단가와 무게를 곱하여 가격 도출"""
-            Ent = btn_item5.get()
+            Ent = self.btn_item5.get()
             if not Ent == "품목이 없는 경우 입력하세요": print(Ent)
             else: print(item_var.get())
 
@@ -220,11 +221,13 @@ class App:
             print('{label:<75} ({p:0>6.2f}%)'.format(label=self.labels_map[idx], p=prob*100))
             self.results.append((self.labels_map[idx], prob*100))
         print("소요시간=> ", datetime.datetime.now() - start_time)
+
+        ## 분류된항목별 정확도로 버튼텍스트 수정
         # self.changetxt()
-        self.btn_item1.configure(text=f"{self.results[0][0]:<10} {self.results[0][1]:>6.2f}%")
-        self.btn_item2.configure(text=f"{self.results[1][0]:<10} {self.results[1][1]:>6.2f}%")
-        self.btn_item3.configure(text=f"{self.results[2][0]:<10} {self.results[2][1]:>6.2f}%")
-        self.btn_item4.configure(text=f"{self.results[3][0]:<10} {self.results[3][1]:>6.2f}%")
+        self.btn_item1.configure(text="{: <19}{:>6.2f}%".format(self.results[0][0], self.results[0][1]))
+        self.btn_item2.configure(text="{: <19}{:>6.2f}%".format(self.results[1][0], self.results[1][1]))
+        self.btn_item3.configure(text="{: <19}{:>6.2f}%".format(self.results[2][0], self.results[2][1]))
+        self.btn_item4.configure(text="{: <19}{:>6.2f}%".format(self.results[3][0], self.results[3][1]))
 
         return self.results
 
