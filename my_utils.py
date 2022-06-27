@@ -201,6 +201,7 @@ class App:
         self.btn_item2.configure(text="{: <19}{:>6.2f}%".format(self.results[1][0], self.results[1][1]), value=self.results[1][0])
         self.btn_item3.configure(text="{: <19}{:>6.2f}%".format(self.results[2][0], self.results[2][1]), value=self.results[2][0])
         self.btn_item4.configure(text="{: <19}{:>6.2f}%".format(self.results[3][0], self.results[3][1]), value=self.results[3][0])
+        self.btn_item1.select()
 
         return self.results
 
