@@ -16,7 +16,7 @@ from efficientnet_pytorch import EfficientNet
 import torchvision
 from torchvision import transforms, datasets
 from torch.utils.data import Subset
-
+import cv2
 
 def imshowt(inp, title=None):
     """Imshow for Tensor."""
@@ -31,7 +31,7 @@ def imshowt(inp, title=None):
     plt.pause(0.001)  # pause a bit so that plots are updated
 
 
-def train_model(save_path, model, criterion, optimizer, scheduler, num_epochs=50):
+def train_model(save_path, model, criterion, optimizer, scheduler, num_epochs=4):
     since = time.time()
     best_model_wts = copy.deepcopy(model.state_dict())
     best_acc = 0.0
@@ -49,7 +49,7 @@ def train_model(save_path, model, criterion, optimizer, scheduler, num_epochs=50
                 model.eval()   # Set model to evaluate mode
 
             running_loss, running_corrects, num_cnt = 0.0, 0, 0
-            
+
             # Iterate over data.
             for inputs, labels in dataloaders[phase]:
                 inputs = inputs.to(device)
@@ -162,7 +162,8 @@ def test_and_visualize_model(model, phase = 'test', num_images=4):
 
 if __name__ == "__main__":
     freeze_support()
-
+    
+    # 알파뱃순으로
     class_names = {
         "0": "apple",
         "1": "banana",
@@ -171,9 +172,9 @@ if __name__ == "__main__":
         "4": "garlic",
         "5": "ginger",
         "6": "grapes",
-        "7": "paprika",
-        "8": "pineapple",
-        "9": "kiwi"
+        "7": "kiwi",
+        "8": "paprika",
+        "9": "pineapple",
     }
     model_name = 'efficientnet-b0'  # b5
     model = EfficientNet.from_pretrained(model_name, num_classes=len(class_names))
@@ -222,19 +223,20 @@ if __name__ == "__main__":
     print('batch_size : %d,  tvt : %d / %d / %d' % (batch_size, batch_num['train'], batch_num['valid'], batch_num['test']))
 
     # ## 데이타 체크
-    # num_show_img = 5
-    # # train check
+    # num_show_img = 7
+    # ## train check
     # inputs, classes = next(iter(dataloaders['train']))
     # out = torchvision.utils.make_grid(inputs[:num_show_img])  # batch의 이미지를 오려부친다
     # imshowt(out, title=[class_names[str(int(x))] for x in classes[:num_show_img]])
-    # # valid check
+    # ## valid check
     # inputs, classes = next(iter(dataloaders['valid']))
     # out = torchvision.utils.make_grid(inputs[:num_show_img])
     # imshowt(out, title=[class_names[str(int(x))] for x in classes[:num_show_img]])
-    # # test check
+    # ## test check
     # inputs, classes = next(iter(dataloaders['test']))
     # out = torchvision.utils.make_grid(inputs[:num_show_img])
     # imshowt(out, title=[class_names[str(int(x))] for x in classes[:num_show_img]])
+    # time.sleep(6)
 
     # print("fc 제외하고 freeze")
     # for n, p in model.named_parameters():
@@ -252,7 +254,7 @@ if __name__ == "__main__":
     exp_lr_scheduler = optim.lr_scheduler.MultiplicativeLR(optimizer_ft, lr_lambda=lmbda)
 
     model, best_idx, best_acc, train_loss, train_acc, valid_loss, valid_acc = train_model(
-        save_path, model, criterion, optimizer_ft, exp_lr_scheduler, num_epochs=5)
+        save_path, model, criterion, optimizer_ft, exp_lr_scheduler, num_epochs=20)
 
     ## 결과 그래프 그리기
     print('best model : %d - %1.f / %.1f'%(best_idx, valid_acc[best_idx], valid_loss[best_idx]))
@@ -279,4 +281,5 @@ if __name__ == "__main__":
     plt.show()
 
     # ## TEST!
+    # print('학습완료')
     # test_and_visualize_model(model, phase = 'test')
