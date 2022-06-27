@@ -4,7 +4,6 @@ from tkinter import *
 from PIL import Image, ImageTk
 import tkinter
 import threading
-
 import json
 import torch
 from torchvision import transforms
@@ -55,33 +54,6 @@ def capture_vid(
     
     return save_dir
 
-
-# def camthread():
-#     color = []
-#     cap = cv2.VideoCapture("rtsp://admin:neuro1203!@192.168.0.73:554/ISAPI/streaming/channels/101")
-#     panel = None
-    
-#     if (cap.isOpened()==False):
-#         print("Unable to read camera feed")
-        
-#     while True:
-#         ret, color = cap.read()
-#         if (color != []):
-#             # cv2.imshow('uvc', color)
-#             image = cv2.resize(color, (100,100))
-#             image = cv2.cvtColor(color, cv2.COLOR_BGR2RGB)
-#             image = Image.fromarray(image)
-#             image = ImageTk.PhotoImage(image)
-            
-#             if panel is None:
-#                 panel = tk.Label(image=image)
-#                 panel.image = image
-#                 panel.pack(side='left')
-#             else:
-#                 panel.configure(image=image)
-#                 panel.image = image
-
-#             cv2.waitKey(1)
 
 import PIL.Image, PIL.ImageTk
 class App:
@@ -141,11 +113,11 @@ class App:
         Label(msg_frame, text="{: <19}{:>6}".format('항목명', '정확도')).pack()
         # msg_frame.pack(side="top", fill='both')
         item_var = StringVar()
-        self.btn_item1 = Radiobutton(msg_frame, text=f"apple", value="apple", variable=item_var)
+        self.btn_item1 = Radiobutton(msg_frame, text="탐지버튼을 눌러서", value="apple", variable=item_var)
         self.btn_item1.select()
-        self.btn_item2 = Radiobutton(msg_frame, text="바나나", value="banana", variable=item_var)
-        self.btn_item3 = Radiobutton(msg_frame, text="가지", value="eggplant", variable=item_var)
-        self.btn_item4 = Radiobutton(msg_frame, text="파인애플", value="pineapple", variable=item_var)
+        self.btn_item2 = Radiobutton(msg_frame, text="항목명을 확인하세요", value="banana", variable=item_var)
+        self.btn_item3 = Radiobutton(msg_frame, text=" "*25, value="eggplant", variable=item_var)
+        self.btn_item4 = Radiobutton(msg_frame, text=" "*25, value="pineapple", variable=item_var)
         self.btn_item5 = Entry(msg_frame, width=80)
         # btn_item5 = Text(msg_frame, width=80, height=10)
         self.btn_item1.pack()
@@ -173,10 +145,10 @@ class App:
             btn_frame, padx=80, pady=20, text='탐지', fg='blue', bg='pink', command = self.whatis)
         # self.btn_snapshot.pack(anchor = tkinter.CENTER, expand=True)
         self.btn_snapshot.pack(side="top")
-        Button(btn_frame, padx=80, pady=20, text="캡쳐", command = self.snapshot).pack()
-        Button(btn_frame, padx=80, pady=20, text="무게 측정").pack()
-        Button(btn_frame, padx=80, pady=20, text="가격표 발행").pack()
-        Button(btn_frame, padx=80, pady=20, text="점장호출", bg="grey").pack()
+        Button(btn_frame, padx=80, pady=12, text="캡쳐", command = self.snapshot).pack()
+        Button(btn_frame, padx=80, pady=12, text="무게 측정").pack()
+        Button(btn_frame, padx=80, pady=12, text="가격표 발행").pack()
+        Button(btn_frame, padx=80, pady=12, text="점장호출", bg="grey").pack()
 
         ## 결과값 불러오기
         # self.results = self.whatis()
@@ -207,6 +179,7 @@ class App:
 
         ## Preprocess image
         img = Image.open(self.save_dir)
+        # img = Image.open("C:/home/img_cap/2022-06-24 11-23-28.jpg")
         img = self.tfms(img).unsqueeze(0)
 
         # Classify
@@ -224,12 +197,10 @@ class App:
 
         ## 분류된항목별 정확도로 버튼텍스트 수정
         # self.changetxt()
-        self.btn_item1.configure(text="{: <19}{:>6.2f}%".format(self.results[0][0], self.results[0][1]))
-        self.btn_item2.configure(text="{: <19}{:>6.2f}%".format(self.results[1][0], self.results[1][1]))
-        self.btn_item3.configure(text="{: <19}{:>6.2f}%".format(self.results[2][0], self.results[2][1]))
-        self.btn_item4.configure(text="{: <19}{:>6.2f}%".format(self.results[3][0], self.results[3][1]))
-
-        ## 
+        self.btn_item1.configure(text="{: <19}{:>6.2f}%".format(self.results[0][0], self.results[0][1]), value=self.results[0][0])
+        self.btn_item2.configure(text="{: <19}{:>6.2f}%".format(self.results[1][0], self.results[1][1]), value=self.results[1][0])
+        self.btn_item3.configure(text="{: <19}{:>6.2f}%".format(self.results[2][0], self.results[2][1]), value=self.results[2][0])
+        self.btn_item4.configure(text="{: <19}{:>6.2f}%".format(self.results[3][0], self.results[3][1]), value=self.results[3][0])
 
         return self.results
 
@@ -267,7 +238,7 @@ class MyVideoCapture:
         else:
             return (ret, None)
 
-        
+
     def __del__(self):
         if self.vid.isOpened():
             self.vid.release()
