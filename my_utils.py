@@ -58,34 +58,28 @@ def capture_vid(
 import PIL.Image, PIL.ImageTk
 class App:
 
-    def __init__(self, window, window_title, video_source=0):
+    def __init__(self, window, window_title, model_dir, label_dir, snapshot_dir, video_source=0):
         self.window = window
         self.window.title(window_title)
-        self.video_source = video_source
-        self.vid = MyVideoCapture(video_source)
 
-        PROJECT_DIR   = os.path.dirname(os.path.abspath(__file__))
-        label_dir     = f'{PROJECT_DIR}/sample/labels_map.txt'
-        model_path    = f"{os.path.dirname(PROJECT_DIR)}/saved_models/freshfood"
-        self.snapshot_dir = f"{os.path.dirname(PROJECT_DIR)}/img_cap"
-        if not os.path.isdir(self.snapshot_dir): os.makedirs(self.snapshot_dir)
-
-        # Load ImageNet class names
+        ## 클래스명 불러오기
         labels_map = json.load(open(label_dir))
         self.labels_map = [labels_map[str(i)] for i in range(len(labels_map))]
-
-        ## 모델 로드
+        
+        ## 모델 불러오기
         model_name = 'efficientnet-b0'  # b5
         self.model = EfficientNet.from_pretrained(model_name, num_classes=10)
-        self.model.load_state_dict(torch.load(f"{model_path}/20220627_epoch@9.pt"))
+        self.model.load_state_dict(torch.load(model_dir))
         self.model.eval()
-
         self.tfms = transforms.Compose(
             [transforms.Resize(224),
             transforms.ToTensor(),
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
             ])
 
+        self.snapshot_dir = snapshot_dir
+        self.video_source = video_source
+        self.vid = MyVideoCapture(video_source)
 
         ## 영상폭+GUI패널폭 여유를 줘서 윈도우 폭 설정(영상이 너무 큰 경우 줄임)
         if (self.vid.width > 1280)|(self.vid.height > 720):
@@ -247,11 +241,11 @@ class MyVideoCapture:
 
 
 if __name__ == "__main__":
-    # PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
-    # model_path  = f"{os.path.dirname(PROJECT_DIR)}/saved_models/freshfood"
-    # save_path   = f"{PROJECT_DIR}/img_cap"
-    # label_dir   = f'{save_path}/labels_map.txt'
-    # if not os.path.isdir(save_path): os.makedirs(save_path)
+    PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
+    model_dir   = f"{os.path.dirname(PROJECT_DIR)}/saved_models/freshfood/20220627_epoch@9.pt"
+    snapshot_dir= f"{os.path.dirname(PROJECT_DIR)}/img_cap"
+    label_dir   = f'{PROJECT_DIR}/sample/labels_map.txt'
+    if not os.path.isdir(snapshot_dir): os.makedirs(snapshot_dir)
 
-    # App(tkinter.Tk(), "Tkinter and OpenCV", video_source="rtsp://admin:neuro1203!@192.168.0.73:554/ISAPI/streaming/channels/101")
-    App(tkinter.Tk(), "Tkinter and OpenCV", video_source=0)
+    # App(tkinter.Tk(), "Tkinter and OpenCV", model_dir, label_dir, snapshot_dir, video_source="rtsp://admin:neuro1203!@192.168.0.73:554/ISAPI/streaming/channels/101")
+    App(tkinter.Tk(), "Tkinter and OpenCV", model_dir, label_dir, snapshot_dir, video_source=0)
