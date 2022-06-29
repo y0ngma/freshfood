@@ -61,7 +61,7 @@ class App:
     def __init__(self, window, window_title, model_dir, label_dir, snapshot_dir, video_source=0):
         self.window = window
         self.window.title(window_title)
-
+        # self.loadmodel(model_dir, 'efficientnet-b0', len(labels_map))
         self.mymodel = mymodel(label_dir, model_dir, 'efficientnet-b0')
 
         self.snapshot_dir = snapshot_dir
@@ -155,18 +155,66 @@ class App:
             return self.snapshot_file
 
 
+    def loadmodel(self, model_dir, model_name='efficientnet-b0', num_classes=10):
+        ## 모델 불러오기
+        self.model = EfficientNet.from_pretrained(model_name, num_classes=10)
+        self.model.load_state_dict(torch.load(model_dir))
+        self.model.eval()
+        self.tfms = transforms.Compose(
+            [transforms.Resize(224),
+            transforms.ToTensor(),
+            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+            ])
+
+    
+    # def whatis(self):
+    #     """사진한장에 대해 탐지결과를 반환"""
+    #     ## Preprocess image
+    #     img = Image.open(self.snapshot()) # "C:/home/img_cap/2022-06-24 11-23-28.jpg"
+    #     img = self.tfms(img).unsqueeze(0)
+
+    #     # Classify
+    #     start_time = datetime.datetime.now() # 시간측정
+    #     with torch.no_grad():
+    #         outputs = self.model(img)
+    #     # Print predictions
+    #     self.results = list()
+    #     print('---------')
+    #     for idx in torch.topk(outputs, k=5).indices.squeeze(0).tolist():
+    #         prob = torch.softmax(outputs, dim=1)[0, idx].item()
+    #         print('{label:<75} ({p:0>6.2f}%)'.format(label=self.labels_map[idx], p=prob*100))
+    #         self.results.append((self.labels_map[idx], prob*100))
+        
+    #     print("소요시간=> ", datetime.datetime.now() - start_time)
+    #     self.show_results()
+    
     def whatis(self):
         """사진한장에 대해 탐지결과를 반환"""
+        ## Preprocess image
         img = Image.open(self.snapshot()) # "C:/home/img_cap/2022-06-24 11-23-28.jpg"
         start_time = datetime.datetime.now() # 시간측정
+        # self.results = self.mymodel.get_whatis(img)
         self.mymodel.get_whatis(img)
+        # img = self.tfms(img).unsqueeze(0)
+
+        # # Classify
+        # with torch.no_grad():
+        #     outputs = self.model(img)
+        # # Print predictions
+        # self.results = list()
+        # print('---------')
+        # for idx in torch.topk(outputs, k=5).indices.squeeze(0).tolist():
+        #     prob = torch.softmax(outputs, dim=1)[0, idx].item()
+        #     print('{label:<75} ({p:0>6.2f}%)'.format(label=self.labels_map[idx], p=prob*100))
+        #     self.results.append((self.labels_map[idx], prob*100))
+        
         print("소요시간=> ", datetime.datetime.now() - start_time)
         self.show_results()
     
-
     def show_results(self):
-        ## 분류된항목별 정확도로 버튼텍스트 수정
         self.results = self.mymodel.results
+        ## 분류된항목별 정확도로 버튼텍스트 수정
+        # self.changetxt()
         self.btn_item1.configure(text="{: <19}{:>6.2f}%".format(self.results[0][0], self.results[0][1]), value=self.results[0][0])
         self.btn_item2.configure(text="{: <19}{:>6.2f}%".format(self.results[1][0], self.results[1][1]), value=self.results[1][0])
         self.btn_item3.configure(text="{: <19}{:>6.2f}%".format(self.results[2][0], self.results[2][1]), value=self.results[2][0])
@@ -205,7 +253,10 @@ class mymodel:
     def get_whatis(self, img):
         """사진한장에 대해 탐지결과를 반환"""
         ## Preprocess image
+        # img = Image.open(self.snapshot()) # "C:/home/img_cap/2022-06-24 11-23-28.jpg"
+        # img = Image.open(App.snapshot()) # "C:/home/img_cap/2022-06-24 11-23-28.jpg"
         img = self.tfms(img).unsqueeze(0)
+        # start_time = datetime.datetime.now() # 시간측정
         with torch.no_grad():
             outputs = self.model(img)
         # Print predictions
@@ -215,7 +266,8 @@ class mymodel:
             prob = torch.softmax(outputs, dim=1)[0, idx].item()
             print('{label:<75} ({p:0>6.2f}%)'.format(label=self.labels_map[idx], p=prob*100))
             self.results.append((self.labels_map[idx], prob*100))
-
+        # return self.results
+        # print("소요시간=> ", datetime.datetime.now() - start_time)
     
 
 class MyVideoCapture:
