@@ -51,7 +51,7 @@ print("img.shape = ", img.shape)
 start_time = datetime.datetime.now() # 시간측정
 with torch.no_grad():
     outputs = model(img)
-    
+
 # Print predictions
 print('---------')
 for idx in torch.topk(outputs, k=5).indices.squeeze(0).tolist():
