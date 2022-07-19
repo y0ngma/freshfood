@@ -1,3 +1,4 @@
+"""외부에서 구한 데이터셋을 이용할때 필요한 것만 사용하도록 하는 파일핸들러"""
 import os, glob, shutil
 from PIL import Image
 import numpy as np
