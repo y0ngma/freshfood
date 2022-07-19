@@ -1,5 +1,6 @@
 """tkinter GUI 참고 https://solarianprogrammer.com/2018/04/21/python-opencv-show-video-tkinter-window/"""
 import os, datetime, time, json
+import shutil
 import cv2 # pip install opencv-python
 import tkinter
 import threading
@@ -7,12 +8,15 @@ import PIL.Image, PIL.ImageTk
 import torch
 from torchvision import transforms
 from efficientnet_pytorch import EfficientNet
+from train_main import PROJECT_DIR, data_path, save_path, label_dir
+
+
 
 
 def capture_vid(
     save_path: str,
     location: str="office",
-    src_address: str="rtsp://admin:neuro1203!@192.168.0.73:554/ISAPI/streaming/channels/101"
+    src_address: str="rtsp://admin:1203!@192.168.0.73:554/ISAPI/streaming/channels/101"
     ):
     """
     ip카메라 캡쳐
@@ -138,11 +142,14 @@ class App:
 
     def whatis(self):
         """사진한장에 대해 탐지결과를 반환"""
-        img        = PIL.Image.open(self.snapshot()) # "C:/home/img_cap/2022-06-24 11-23-28.jpg"
+        snap_dir   = self.snapshot()
+        img        = PIL.Image.open(snap_dir) # "C:/home/img_cap/2022-06-24 11-23-28.jpg"
         start_time = datetime.datetime.now() # 시간측정
         self.mymodel.get_whatis(img)
         print("소요시간=> ", datetime.datetime.now() - start_time)
         self.update_btn()
+        copy_dir = f"{data_path}/{self.mymodel.results[0][0]}/{os.path.basename(snap_dir)}"
+        shutil.copy(snap_dir, copy_dir)
     
 
     def update_btn(self):
@@ -229,14 +236,8 @@ class MyVideoCapture:
             self.vid.release()
 
 
-
 if __name__ == "__main__":
-    PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
-    # model_dir   = f"{os.path.dirname(PROJECT_DIR)}/saved_models/freshfood/20220627_epoch@9.pt"
-    # label_dir   = f"{os.path.dirname(PROJECT_DIR)}/dataset/freshfood/all/labels_map.txt"
-    # snapshot_dir= f"{os.path.dirname(PROJECT_DIR)}/dataset/freshfood/img_cap"
-    model_dir   = f"{PROJECT_DIR}/saved_models/20220627_epoch@9.pt" # 학습된 모델경로
-    label_dir   = f'{PROJECT_DIR}/sample/labels_map.txt'
+    model_dir   = f"{save_path}/20220627_epoch@9.pt" # 학습된 모델경로
     snapshot_dir= f"{PROJECT_DIR}/img_cap" # 캡쳐이미지 저장 경로
     if not os.path.isdir(snapshot_dir): os.makedirs(snapshot_dir)
 

@@ -18,6 +18,23 @@ from torchvision import transforms, datasets
 from torch.utils.data import Subset
 import cv2
 
+
+PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
+# 용량이 큰 모델과 데이터셋은 깃폴더(PROJECT_DIR) 밖에 보관할때
+# data_path   = f"{os.path.dirname(PROJECT_DIR)}/dataset/freshfood/all"
+# save_path   = f"{os.path.dirname(PROJECT_DIR)}/saved_models/freshfood"
+data_path   = f"{PROJECT_DIR}/sample"
+save_path   = f"{PROJECT_DIR}/saved_models"
+## 클래스명 불러오기
+label_dir   = f'{data_path}/labels_map.txt'
+# labels_map  = json.load(open(label_dir))
+# labels_map  = [labels_map[str(i)] for i in range(len(labels_map))]
+
+model_name  = 'efficientnet-b0'  # b5
+num_epochs  = 2
+batch_size  = 32
+
+
 def imshowt(inp, title=None):
     """Imshow for Tensor."""
     inp = inp.numpy().transpose((1, 2, 0))
@@ -159,7 +176,6 @@ def test_and_visualize_model(model, phase = 'test', num_images=4):
     model.train(mode=was_training);  # 다시 train모드로
 
 
-
 if __name__ == "__main__":
     freeze_support()
     
@@ -176,27 +192,12 @@ if __name__ == "__main__":
         "8": "paprika",
         "9": "pineapple",
     }
-    model_name = 'efficientnet-b0'  # b5
     model = EfficientNet.from_pretrained(model_name, num_classes=len(class_names))
     print(EfficientNet.get_image_size(model_name))
 
-    num_epochs  = 2
-    batch_size  = 32
     random_seed = 555
     random.seed(random_seed)
     torch.manual_seed(random_seed)
-
-    PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
-    # data_path   = f"{os.path.dirname(PROJECT_DIR)}/dataset/freshfood/all"
-    # save_path   = f"{os.path.dirname(PROJECT_DIR)}/saved_models/freshfood"
-    data_path   = f"{PROJECT_DIR}/sample"
-    save_path   = f"{PROJECT_DIR}/saved_models"
-
-    # ## 클래스명 불러오기
-    # label_dir   = f'{PROJECT_DIR}/sample/labels_map.txt'
-    # labels_map  = json.load(open(label_dir))
-    # labels_map  = [labels_map[str(i)] for i in range(len(labels_map))]
-
 
     ## make dataset
     mydataset = datasets.ImageFolder(
