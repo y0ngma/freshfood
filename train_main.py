@@ -1,4 +1,4 @@
-## 학습 코드
+"""학습 코드 참고 : https://m.blog.naver.com/PostView.naver?blogId=amethyst_lee&logNo=222013520411&targetKeyword=&targetRecommendationCode=1"""
 from cProfile import label
 import json, os, copy, random, time, datetime
 import numpy as np
@@ -180,14 +180,22 @@ if __name__ == "__main__":
     model = EfficientNet.from_pretrained(model_name, num_classes=len(class_names))
     print(EfficientNet.get_image_size(model_name))
 
+    num_epochs  = 2
     batch_size  = 32
     random_seed = 555
     random.seed(random_seed)
     torch.manual_seed(random_seed)
 
     PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
-    data_path   = f"{os.path.dirname(PROJECT_DIR)}/dataset/freshfood/all"
-    save_path   = f"{os.path.dirname(PROJECT_DIR)}/saved_models/freshfood"
+    # data_path   = f"{os.path.dirname(PROJECT_DIR)}/dataset/freshfood/all"
+    # save_path   = f"{os.path.dirname(PROJECT_DIR)}/saved_models/freshfood"
+    data_path   = f"{PROJECT_DIR}/sample"
+    save_path   = f"{PROJECT_DIR}/saved_models"
+
+    # ## 클래스명 불러오기
+    # label_dir   = f'{PROJECT_DIR}/sample/labels_map.txt'
+    # labels_map  = json.load(open(label_dir))
+    # labels_map  = [labels_map[str(i)] for i in range(len(labels_map))]
 
 
     ## make dataset
@@ -254,7 +262,7 @@ if __name__ == "__main__":
     exp_lr_scheduler = optim.lr_scheduler.MultiplicativeLR(optimizer_ft, lr_lambda=lmbda)
 
     model, best_idx, best_acc, train_loss, train_acc, valid_loss, valid_acc = train_model(
-        save_path, model, criterion, optimizer_ft, exp_lr_scheduler, num_epochs=20)
+        save_path, model, criterion, optimizer_ft, exp_lr_scheduler, num_epochs=num_epochs)
 
     ## 결과 그래프 그리기
     print('best model : %d - %1.f / %.1f'%(best_idx, valid_acc[best_idx], valid_loss[best_idx]))

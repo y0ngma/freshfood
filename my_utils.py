@@ -1,3 +1,4 @@
+"""tkinter GUI 참고 https://solarianprogrammer.com/2018/04/21/python-opencv-show-video-tkinter-window/"""
 import os, datetime, time, json
 import cv2 # pip install opencv-python
 import tkinter
@@ -169,6 +170,7 @@ class App:
 class mymodel:
     """모델 관련 클래스"""
     def __init__(self, label_dir, model_dir, model_name='efficientnet-b0'):
+        "efficientnet-b[0~7]사용. 0이 가장 빠름"
         ## 클래스명 불러오기
         labels_map      = json.load(open(label_dir))
         self.labels_map = [labels_map[str(i)] for i in range(len(labels_map))]
@@ -230,10 +232,13 @@ class MyVideoCapture:
 
 if __name__ == "__main__":
     PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
-    model_dir   = f"{os.path.dirname(PROJECT_DIR)}/saved_models/freshfood/20220627_epoch@9.pt"
-    snapshot_dir= f"{os.path.dirname(PROJECT_DIR)}/img_cap"
+    # model_dir   = f"{os.path.dirname(PROJECT_DIR)}/saved_models/freshfood/20220627_epoch@9.pt"
+    # label_dir   = f"{os.path.dirname(PROJECT_DIR)}/dataset/freshfood/all/labels_map.txt"
+    # snapshot_dir= f"{os.path.dirname(PROJECT_DIR)}/dataset/freshfood/img_cap"
+    model_dir   = f"{PROJECT_DIR}/saved_models/20220627_epoch@9.pt" # 학습된 모델경로
     label_dir   = f'{PROJECT_DIR}/sample/labels_map.txt'
+    snapshot_dir= f"{PROJECT_DIR}/img_cap" # 캡쳐이미지 저장 경로
     if not os.path.isdir(snapshot_dir): os.makedirs(snapshot_dir)
 
-    # App(tkinter.Tk(), "Tkinter and OpenCV", model_dir, label_dir, snapshot_dir, video_source="rtsp://admin:neuro1203!@192.168.0.73:554/ISAPI/streaming/channels/101")
+    # App(tkinter.Tk(), "Tkinter and OpenCV", model_dir, label_dir, snapshot_dir, video_source="rtsp://admin:1203!@192.168.0.73:554/ISAPI/streaming/channels/101")
     App(tkinter.Tk(), "Tkinter and OpenCV", model_dir, label_dir, snapshot_dir, video_source=0)
