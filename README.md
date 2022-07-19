@@ -14,18 +14,23 @@ freshfood
     labels_map.txt # 라벨 정보
   ㄴ saved_models
     ㄴ 20220627_epoch@9.pt # 학습된 모델
+  ㄴ img_cap
+    ㄴ captured_img.jpg
   train_main.py # 학습파일
   my_utils.py # 실행파일
 ```
 
-## 학습 후 저장된 모델의 경로를 인식하도록 코드 수정
+## 학습
 ```bash
 # 필요 라이브러리 설치 @ ~/freshfood/
 pip install -r requirements.txt
 python train_main.py
 ```
+- 현재는 10개의 과일에 대하여 각 100장 정도로 학습한 모델이 첨부되어 있습니다.
+  - apple, banana, carrot, cauliflower, garlic, ginger, grapes, paprika, pineapple, kiwi
 
 ## 분류기 실행
+- 학습 후 새로이 저장된 모델의 경로를 인식하도록 코드 수정
 - 웹캠이나 ipcamera 등을 구동하여 화면을 tkinter 윈도우에 송출합니다. 
 - 버튼을 누르면 캡쳐 후에 해당 이미지를 분류하고 그 결과를 출력합니다.
 ```bash
